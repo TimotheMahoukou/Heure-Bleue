@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Heure Bleue</title>
+<script>try{var k=localStorage.getItem('hb-skin');if(k)document.documentElement.dataset.skin=k}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
@@ -246,6 +247,55 @@ input,textarea{-webkit-user-select:text;user-select:text}
 .sheet input[type=date],.sheet input[type=time]{width:100%;min-width:0}
 .sheet .chips,.sheet .acts,.sheet .row,.sheet .sw8{padding-inline:6px}
 body.lock{overflow:hidden;position:fixed;inset:0;width:100%}
+/* thème Néon vert */
+[data-skin=vert]{--bg:#f2f2f2;--bg2:#d9d9d9;--blue:#1aff3c;--cyan:#009e24;--pink:#0a0a0a;--ink:#0a0a0a;--mute:#4d4d4d;--line:rgba(0,0,0,.2);color-scheme:light}
+[data-skin=vert] body{background:linear-gradient(#99ffcc,#99ffcc) right 0 top 0/46% 300px no-repeat,linear-gradient(#d9d9d9,#d9d9d9) left 0 top 150px/58% 230px no-repeat,linear-gradient(#1aff3c,#1aff3c) right 0 top 300px/18% 120px no-repeat,#f7f7f7;background-attachment:fixed}
+[data-skin=vert] header{box-shadow:inset 0 var(--st) 0 #0a0a0a}
+[data-skin=vert] .date .n{color:#0a0a0a;text-shadow:5px 5px 0 #1aff3c}
+[data-skin=vert] .phase{background:#1aff3c;color:#000;box-shadow:-6px 6px 0 #000}
+[data-skin=vert] .phase em{color:#000}
+[data-skin=vert] .slab{background:linear-gradient(90deg,#1aff3c,transparent)}
+[data-skin=vert] .sum b,[data-skin=vert] .timer .clock,[data-skin=vert] .rec .v,[data-skin=vert] .glob .t b,[data-skin=vert] .xr .l b,[data-skin=vert] .up .when,[data-skin=vert] .cl .now{color:#0a0a0a}
+[data-skin=vert] .panel{background:linear-gradient(135deg,#ffffff 40%,#99ffcc);border-left-color:#1aff3c}
+[data-skin=vert] .btn{background:#0a0a0a;color:#fff;box-shadow:5px 5px 0 #1aff3c}
+[data-skin=vert] .btn:active{box-shadow:2px 2px 0 #1aff3c}
+[data-skin=vert] .btn.alt{background:#1aff3c;color:#000;box-shadow:5px 5px 0 #000}
+[data-skin=vert] .btn.ghost{background:#fff;color:#000;border-color:#000;box-shadow:none}
+[data-skin=vert] .btn.danger{background:#000;color:#fff;box-shadow:5px 5px 0 #d9d9d9}
+[data-skin=vert] .mi,[data-skin=vert] .rec,[data-skin=vert] .ex{background:#fff;border-color:#0a0a0a}
+[data-skin=vert] .mi .go{color:#000}
+[data-skin=vert] .mi.act{background:#0a0a0a;color:#fff}[data-skin=vert] .mi.act .tm{color:#fff}
+[data-skin=vert] .dc{background:#e4e4e4}[data-skin=vert] .dc.today{background:#1aff3c}
+[data-skin=vert] .dc.sel{border-color:#000;box-shadow:inset 0 0 0 2px #000}[data-skin=vert] .dc.pl::after{background:#000}
+[data-skin=vert] .nav{background:#0a0a0a;color:#1aff3c}
+[data-skin=vert] .big .d{color:#0a0a0a;text-shadow:4px 4px 0 #1aff3c}
+[data-skin=vert] .delta{background:#1aff3c;color:#000}[data-skin=vert] .delta.neg{background:#000;color:#fff}
+[data-skin=vert] .track,[data-skin=vert] .mini{background:rgba(0,0,0,.1)}
+[data-skin=vert] textarea,[data-skin=vert] .in,[data-skin=vert] input[type=color],[data-skin=vert] .cov{background:#fff;color:#000;border-color:#0a0a0a}
+[data-skin=vert] .rk.big{box-shadow:6px 6px 0 #0a0a0a}[data-skin=vert] .rk.big.s{box-shadow:6px 6px 0 #0a0a0a,0 0 28px var(--rc)}
+[data-skin=vert] .hero .moon{background:radial-gradient(circle at 40% 40%,#1aff3c,#99ffcc 50%,transparent 70%);opacity:.8}
+[data-skin=vert] .hmenu button{color:#0a0a0a;text-shadow:4px 4px 0 #1aff3c}
+[data-skin=vert] .hmenu button small{color:#0a0a0a}
+[data-skin=vert] .hmenu button:hover,[data-skin=vert] .hmenu button:focus-visible,[data-skin=vert] .hmenu button:active{background:#0a0a0a;color:#1aff3c;text-shadow:none}
+[data-skin=vert] .hmenu button:active small,[data-skin=vert] .hmenu button:hover small{color:#fff}
+[data-skin=vert] .pbtn{background:#0a0a0a;color:#1aff3c}[data-skin=vert] .pbtn.main{background:#1aff3c;color:#000;box-shadow:4px 4px 0 #000}
+[data-skin=vert] .vinyl{box-shadow:0 0 0 3px #fff,0 0 0 6px #1aff3c,0 0 26px 6px rgba(26,255,60,.45)}
+[data-skin=vert] nav.tabs{background:linear-gradient(180deg,transparent,rgba(247,247,247,.97) 30%)}
+[data-skin=vert] .tab{background:#d9d9d9}[data-skin=vert] .tab small{color:#333}
+[data-skin=vert] .tab[aria-current=page]{background:#1aff3c;color:#000;border-bottom-color:#000}[data-skin=vert] .tab[aria-current=page] small{color:#000}
+[data-skin=vert] .fab{background:#1aff3c;color:#000;box-shadow:5px 5px 0 #000}
+[data-skin=vert] .chip[aria-pressed=true]{color:#000}[data-skin=vert] .chip[style*="--pink"][aria-pressed=true],[data-skin=vert] .chip[style*="--c:#9db3e6"][aria-pressed=true]{color:#fff}
+[data-skin=vert] .sw8 button[aria-pressed=true]{outline-color:#000}
+[data-skin=vert] .toast{background:#1aff3c;color:#000}
+[data-skin=vert] .sheet{background:linear-gradient(160deg,#ffffff 50%,#99ffcc);border-top-color:#1aff3c}
+[data-skin=vert] .scrim{background:rgba(10,10,10,.45)}
+[data-skin=vert] .body polygon[fill="#18306b"]{fill:#cfcfcf}[data-skin=vert] .body polygon[fill="#10255a"]{fill:#e6e6e6}[data-skin=vert] .body .z{stroke:#fff}
+[data-skin=vert] .slot svg g{stroke:#0a0a0a}
+[data-skin=vert] .boom div{box-shadow:8px 8px 0 #1aff3c,16px 16px 0 #99ffcc}
+.skins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.skin{min-height:96px;padding:10px;text-align:left;border:3px solid transparent;display:flex;flex-direction:column;justify-content:space-between;font:400 20px Anton,Impact,sans-serif}
+.skin[aria-pressed=true]{border-color:var(--ink)}
+.skin .sw{display:flex;gap:4px}.skin .sw i{width:20px;height:20px;transform:skewX(-12deg)}
 /* tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:10px 8px calc(var(--sb) + 10px);background:linear-gradient(180deg,transparent,rgba(2,9,30,.96) 30%)}
 .tab{min-height:54px;background:var(--bg2);transform:skewX(-14deg);border-bottom:3px solid transparent;transition:background .15s,transform .15s}
@@ -396,7 +446,7 @@ function vCal(){
   <h2 class="d" style="--i:2">${WD[sd.getDay()]} ${sd.getDate()}</h2>
   <div style="--i:3"><div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Prévu</div>${plansOn(selDay).map(planRow).join('')||'<div class="empty">Rien de prévu.</div>'}
   <div class="row" style="margin:10px 0 18px"><button class="btn" data-plannew="${selDay}"><span>Prévoir ce jour</span></button></div>
-  <div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Fait</div>${ents.length?ents.map(entRow).join('')+`<div class="empty">Total : <b style="color:#fff">${esc(fmt(secsOn(selDay)))}</b></div>`:'<div class="empty">Rien ce jour-là.</div>'}
+  <div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Fait</div>${ents.length?ents.map(entRow).join('')+`<div class="empty">Total : <b style="color:var(--ink)">${esc(fmt(secsOn(selDay)))}</b></div>`:'<div class="empty">Rien ce jour-là.</div>'}
   <div class="row" style="margin-top:12px"><button class="btn alt" data-add="${selDay}"><span>Ajouter ce jour</span></button></div></div>`;
 }
 
@@ -422,7 +472,7 @@ function widgetData(){
   const cats=S.cats.map(c=>({n:c.name,c:c.color,m:Math.round(range(+a,+b,c.id)/60)})).filter(c=>c.m>0).sort((x,y)=>y.m-x.m);
   const next=S.plans.filter(p=>p.start+p.dur*60e3>=Date.now()).sort((x,y)=>x.start-y.start).slice(0,6).map(p=>({t:p.title,s:p.start,c:p.cat?cat(p.cat).color:'#ffffff'}));
   const groups=BODYG.map(k=>bodyGroup(k)).filter(Boolean).map(g=>({n:g.name,c:okCol(g.color),r:rk(gInfo(g.id).s)}));
-  return {hb:1,at:Date.now(),rank:rk(globalScore()),today:Math.round(secsOn(dayKey(new Date()))/60),week:{tot:Math.round(range(+a,+b)/60),cats},next,groups,timer:S.timer?{n:cat(S.timer.cat).name,c:cat(S.timer.cat).color,s:S.timer.start}:null};
+  return {hb:1,skin:S.skin==='vert'?'vert':'bleu',at:Date.now(),rank:rk(globalScore()),today:Math.round(secsOn(dayKey(new Date()))/60),week:{tot:Math.round(range(+a,+b)/60),cats},next,groups,timer:S.timer?{n:cat(S.timer.cat).name,c:cat(S.timer.cat).color,s:S.timer.start}:null};
 }
 function updateWidget(){
   const txt=JSON.stringify(widgetData());
@@ -436,9 +486,12 @@ function copyScript(){
     else fetch(url).then(r=>r.text()).then(t=>navigator.clipboard.writeText(t)).then(()=>toast('Script copié !'),()=>toast('Copie impossible : ouvre le lien du script'));
   }catch(e){toast('Copie impossible ici')}
 }
+function applySkin(){const k=S.skin==='vert'?'vert':'';if(k)document.documentElement.dataset.skin=k;else delete document.documentElement.dataset.skin;try{localStorage.setItem('hb-skin',k)}catch(e){}const m=document.querySelector('meta[name=theme-color]');if(m)m.content=k?'#0a0a0a':'#06163a'}
+const SKINS=[['bleu','Nuit bleue','#06163a',['#06163a','#1d4fd8','#2ee6ff','#ff3d7f']],['vert','Néon vert','#f7f7f7',['#1aff3c','#99ffcc','#d9d9d9','#0a0a0a']]];
 function vCats(){
   return `<h2 class="d" style="--i:0">Tes activités</h2><div style="--i:1">${S.cats.map(c=>`<button class="cat" style="--c:${esc(c.color)}" data-cat="${esc(c.id)}"><i></i><span class="nm" style="font-weight:800;text-transform:uppercase">${esc(c.name)}</span><span class="g">${c.goal?'objectif '+esc(fmt(c.goal*60))+'/sem.':'sans objectif'}</span></button>`).join('')}
   <div class="row" style="margin-top:14px"><button class="btn alt" data-cat="new"><span>Nouvelle activité</span></button></div></div>
+  <h2 class="d" style="--i:2">Thème</h2><div class="skins" style="--i:2">${SKINS.map(([id,n,bg,cs])=>`<button class="skin" data-skin="${id}" aria-pressed="${(S.skin||'bleu')===id}" style="background:${bg};color:${id==='vert'?'#0a0a0a':'#f3f7ff'}">${n}<span class="sw">${cs.map(c=>`<i style="background:${c}"></i>`).join('')}</span></button>`).join('')}</div>
   <h2 class="d" style="--i:2">Widget iPhone</h2><section class="panel" style="--i:2"><div style="font-weight:500">Avec l’app gratuite <b>Scriptable</b>, tu peux afficher ton rang, ta semaine et tes prochains événements en widget sur l’écran d’accueil.</div>
   <ol style="font-weight:500;padding-left:20px;margin:10px 0">
   <li>Installe <b>Scriptable</b> depuis l’App Store.</li>
@@ -765,6 +818,7 @@ document.addEventListener('click',ev=>{
   else if('newexo' in ds)exoNameSheet(null);
   else if('prof' in ds)profSheet();
   else if('wup' in ds)updateWidget();
+  else if(ds.skin){S.skin=ds.skin==='vert'?'vert':'bleu';save();applySkin();render();toast('Thème '+(S.skin==='vert'?'Néon vert':'Nuit bleue'))}
   else if('wscript' in ds)copyScript();
   else if('plannew' in ds)planSheet(null,ds.plannew||null);
   else if(ds.plan)planSheet(S.plans.find(p=>p.id===ds.plan));
@@ -796,6 +850,7 @@ $('fab').onclick=()=>view==='gym'?liftSheet(null,null):entrySheet(null,view==='c
 $('scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')closeSheet()});
 setInterval(()=>{if(S.timer){const c=$('clk');if(c)c.textContent=clock(live());const k=dayKey(new Date());document.querySelectorAll('[data-tm]').forEach(el=>el.textContent=fmt(secsOn(k,el.dataset.tm)))}header();checkReminders()},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
+applySkin();
 render(true);
 if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 }
