@@ -2,6 +2,7 @@
 // Nom du script dans Scriptable : Heure Bleue
 // 1) Lancé depuis l'app Heure Bleue (bouton « Mettre à jour le widget ») : lit le presse-papiers et enregistre les données.
 // 2) Lancé par le widget : affiche les données enregistrées.
+// Widget Sport (silhouette + rangs) : dans les réglages du widget, mets « sport » dans Parameter.
 
 const FILE = "heure-bleue.json";
 const fm = FileManager.local();
@@ -34,6 +35,74 @@ function rankBox(stack, r, size) {
   const t = b.addText(r || "?"); t.font = Font.blackSystemFont(size * 0.66); t.textColor = col(C.rk || "#06163a");
 }
 
+/* ---- widget Sport : silhouette + rangs (paramètre du widget : sport) ---- */
+const ab=[106,124,142].flatMap(y=>[[88,99],[101,112]].map(([a,b])=>[[a,y],[b,y],[b,y+16],[a,y+16]]));
+const FRONT=[['epaules',[[58,66],[84,62],[78,84],[66,102],[54,90]],1],['torse',[[86,64],[99,67],[99,100],[82,104],[74,94],[80,82]],1],['bras',[[54,96],[68,104],[64,140],[52,140],[48,116]],1],['bras',[[48,144],[64,144],[58,182],[46,182],[42,162]],1],...ab.map(p=>['abdos',p,0]),['abdos',[[76,104],[86,106],[86,158],[78,150],[74,126]],1],['cuisses',[[76,166],[98,188],[96,250],[84,252],[72,250],[70,204]],1],['mollets',[[74,270],[92,270],[90,330],[80,336],[72,310]],1]];
+const BACK=[['dos',[[84,58],[116,58],[112,76],[100,96],[88,76]],0],['dos',[[76,86],[88,80],[99,98],[99,148],[86,150],[74,118]],1],['dos',[[88,150],[112,150],[110,166],[90,166]],0],['epaules',[[58,66],[82,62],[78,82],[66,100],[54,90]],1],['bras',[[54,96],[68,104],[64,140],[52,140],[48,116]],1],['bras',[[48,144],[64,144],[58,182],[46,182],[42,162]],1],['cuisses',[[80,166],[99,170],[99,200],[80,202],[72,186]],1],['cuisses',[[72,206],[97,206],[95,250],[84,252],[72,250]],1],['mollets',[[72,270],[93,270],[91,318],[81,336],[72,314]],1]];
+const BASE=[[[88,14],[112,14],[120,32],[112,50],[88,50],[80,32]],[[92,50],[108,50],[110,62],[90,62]],[[80,160],[120,160],[118,182],[100,192],[82,182]]];
+const BASEM=[[[44,184],[58,186],[56,202],[44,200]],[[72,252],[96,252],[92,268],[76,268]],[[72,338],[90,338],[94,350],[68,350]],[[60,62],[100,56],[100,190],[70,180],[50,96]]];
+function bodyImage(d, W, H) {
+  const dc = new DrawContext(); dc.size = new Size(W, H); dc.opaque = false; dc.respectScreenScale = true;
+  const k = Math.min(W / 410, H / 380), ox0 = (W - 410 * k) / 2;
+  const G = {}; for (const g of (d.groups || [])) if (g.k) G[g.k] = g;
+  const poly = (pts, ox, color, sc) => {
+    const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+    const path = new Path();
+    path.addLines(pts.map(([x, y]) => new Point(ox0 + (ox + cx + (x - cx) * sc) * k, (cy + (y - cy) * sc) * k)));
+    path.closeSubpath(); dc.addPath(path); dc.setFillColor(color); dc.fillPath();
+  };
+  const M = pts => pts.map(([x, y]) => [200 - x, y]);
+  const base = col(C.mute, 0.35), base2 = col(C.mute, 0.2);
+  for (const ox of [0, 210]) {
+    poly(BASEM[3], ox, base2, 1); poly(M(BASEM[3]), ox, base2, 1);
+    for (const p of BASEM.slice(0, 3)) { poly(p, ox, base, 1); poly(M(p), ox, base, 1) }
+    for (const p of BASE) poly(p, ox, base, 1);
+    for (const [key, pts, mir] of (ox ? BACK : FRONT)) {
+      const g = G[key], s = g ? g.s : 0, c = col(g ? g.c : C.mute, 0.2 + Math.min(6, s) / 6 * 0.8), sc = 1 + s * 0.035;
+      poly(pts, ox, c, sc); if (mir) poly(M(pts), ox, c, sc);
+    }
+  }
+  return dc.getImage();
+}
+function buildSport(d, family) {
+  const w = new ListWidget();
+  const g = new LinearGradient(); g.colors = [col(C.bg2), col(C.bg1)]; g.locations = [0, 1]; g.startPoint = new Point(1, 0); g.endPoint = new Point(0, 1);
+  w.backgroundGradient = g; w.setPadding(12, 12, 12, 12); w.url = "https://timothemahoukou.github.io/Heure-Bleue/";
+  w.refreshAfterDate = new Date(Date.now() + 30 * 60 * 1000);
+  if (!d || !d.groups) { txt(w, "HEURE BLEUE · SPORT", 11, C.cyan, "black"); w.addSpacer(6); txt(w, "Dans l’app, touche « Mettre à jour le widget ».", 13, C.ink).lineLimit = 3; return w }
+  const small = family === "small", large = family === "large";
+  if (small) {
+    const top = w.addStack(); top.centerAlignContent(); txt(top, "SPORT", 11, C.cyan, "black"); top.addSpacer(); rankBox(top, d.rank, 30);
+    w.addSpacer(4); const im = w.addImage(bodyImage(d, 260, 240)); im.centerAlignImage(); w.addSpacer();
+    return w;
+  }
+  const row = w.addStack(); row.centerAlignContent();
+  const im = row.addImage(bodyImage(d, large ? 300 : 170, large ? 278 : 158)); im.imageSize = new Size(large ? 160 : 150, large ? 148 : 139);
+  row.addSpacer(10);
+  const right = row.addStack(); right.layoutVertically();
+  const h = right.addStack(); h.centerAlignContent(); rankBox(h, d.rank, 40); h.addSpacer(8);
+  const hv = h.addStack(); hv.layoutVertically(); txt(hv, "RANG GLOBAL", 10, C.cyan, "black"); txt(hv, d.pct ? "mieux que ~" + d.pct + " %" : "Ton corps", 12, C.ink, "bold");
+  right.addSpacer(6);
+  const gs = (d.groups || []).slice(0, 7);
+  const grid = right.addStack(); grid.layoutHorizontally();
+  for (const colIdx of [0, 1]) {
+    const cst = grid.addStack(); cst.layoutVertically();
+    for (const x of gs.filter((_, i) => i % 2 === colIdx)) {
+      const r = cst.addStack(); r.centerAlignContent(); rankBox(r, x.r, 15); r.addSpacer(4);
+      const sw = r.addStack(); sw.size = new Size(3, 12); sw.backgroundColor = col(x.c); r.addSpacer(3);
+      txt(r, x.n, 10, C.ink, "bold"); cst.addSpacer(2);
+    }
+    grid.addSpacer(8);
+  }
+  if (large) {
+    w.addSpacer(10); txt(w, "RECORDS", 11, C.pink, "black"); w.addSpacer(4);
+    for (const r of (d.recs || []).slice(0, 5)) { const st = w.addStack(); st.centerAlignContent(); const sw = st.addStack(); sw.size = new Size(4, 16); sw.backgroundColor = col(r.c); st.addSpacer(6); txt(st, r.n, 13, C.ink, "bold"); st.addSpacer(); txt(st, r.v, 13, C.ink, "black"); w.addSpacer(3) }
+    if (!(d.recs || []).length) txt(w, "Note ta première perf dans l’app.", 12, C.mute);
+  }
+  w.addSpacer();
+  return w;
+}
+
 function buildLock(d, family) {
   const w = new ListWidget(); w.url = "https://timothemahoukou.github.io/Heure-Bleue/";
   w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
@@ -61,6 +130,8 @@ function buildLock(d, family) {
 
 function build(d, family) {
   if (family && String(family).startsWith("accessory")) return buildLock(d, family);
+  if (d && d.pal && d.pal.bg1) C = Object.assign({}, C, d.pal); else if (d && d.skin === "vert") C = VERT;
+  if (String(args.widgetParameter || "").trim().toLowerCase().startsWith("sport")) return buildSport(d, family);
   if (d && d.pal && d.pal.bg1) C = Object.assign({}, C, d.pal); else if (d && d.skin === "vert") C = VERT;
   const w = new ListWidget();
   const g = new LinearGradient(); g.colors = [col(C.bg2), col(C.bg1)]; g.locations = [0, 1]; g.startPoint = new Point(1, 0); g.endPoint = new Point(0, 1);

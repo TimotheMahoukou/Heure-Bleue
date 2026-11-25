@@ -481,8 +481,10 @@ function widgetData(){
   const a=monday(new Date()),b=new Date(a);b.setDate(a.getDate()+7);
   const cats=S.cats.map(c=>({n:c.name,c:c.color,m:Math.round(range(+a,+b,c.id)/60)})).filter(c=>c.m>0).sort((x,y)=>y.m-x.m);
   const next=S.plans.filter(p=>p.start+p.dur*60e3>=Date.now()).sort((x,y)=>x.start-y.start).slice(0,6).map(p=>({t:p.title,s:p.start,c:p.cat?cat(p.cat).color:'#ffffff'}));
-  const groups=BODYG.map(k=>bodyGroup(k)).filter(Boolean).map(g=>({n:g.name,c:okCol(g.color),r:rk(gInfo(g.id).s)}));
-  return {hb:1,skin:S.skin==='vert'?'vert':'bleu',pal:S.skin==='vert'?{bg1:'#c2d9c9',bg2:'#8fe6b9',cyan:'#0a7a2a',pink:'#0b5a24',ink:'#0b4a1f',mute:'#2c5a3a',rk:'#0b4a1f'}:{bg1:'#06163a',bg2:'#123a8c',cyan:'#2ee6ff',pink:'#ff3d7f',ink:'#f3f7ff',mute:'#9db3e6',rk:'#06163a'},at:Date.now(),rank:rk(globalScore()),today:Math.round(secsOn(dayKey(new Date()))/60),week:{tot:Math.round(range(+a,+b)/60),cats},next,groups,timer:S.timer?{n:cat(S.timer.cat).name,c:cat(S.timer.cat).color,s:S.timer.start}:null};
+  const groups=BODYG.map(k=>[k,bodyGroup(k)]).filter(x=>x[1]).map(([k,g])=>{const sc_=gInfo(g.id).s;return {k,n:g.name,c:okCol(g.color),r:rk(sc_),s:Math.round(sc_*100)/100}});
+  const recs=S.exos.map(x=>[x,record(x.id)]).filter(x=>x[1]).sort((p,q)=>q[1].date-p[1].date).slice(0,5).map(([x,r])=>({n:x.name,c:xcol(x),v:r.w?(x.bw?'+':'')+kg(r.w)+' kg × '+r.r:r.r+(STD[x.id]&&STD[x.id][0]==='sec'?' s':' reps')}));
+  const pc=pct(globalScore());
+  return {hb:1,skin:S.skin==='vert'?'vert':'bleu',pal:S.skin==='vert'?{bg1:'#c2d9c9',bg2:'#8fe6b9',cyan:'#0a7a2a',pink:'#0b5a24',ink:'#0b4a1f',mute:'#2c5a3a',rk:'#0b4a1f'}:{bg1:'#06163a',bg2:'#123a8c',cyan:'#2ee6ff',pink:'#ff3d7f',ink:'#f3f7ff',mute:'#9db3e6',rk:'#06163a'},at:Date.now(),rank:rk(globalScore()),today:Math.round(secsOn(dayKey(new Date()))/60),week:{tot:Math.round(range(+a,+b)/60),cats},next,groups,recs,pct:pc,timer:S.timer?{n:cat(S.timer.cat).name,c:cat(S.timer.cat).color,s:S.timer.start}:null};
 }
 function updateWidget(){
   const txt=JSON.stringify(widgetData());
