@@ -580,7 +580,9 @@ function togglePlay(){if(!audio.src||curT<0)playT(0);else if(audio.paused)audio.
 audio.onended=()=>playT(curT+1);
 function musicUI(){const b=$('pp');if(b)b.textContent=audio.paused?'▶':'❚❚';const n=$('npn');const L=tracks();if(n)n.textContent=curT>=0&&L[curT]?L[curT].name:'Aucune musique';
   const np=document.querySelector('.np');if(np){np.classList.toggle('playing',!audio.paused);const c=curT>=0&&L[curT]?coverOf(L[curT]):'';np.querySelector('.cv').innerHTML=c?`<img src="${c}" alt="">`:'♪'}document.querySelectorAll('.trk').forEach(r=>r.classList.toggle('on',+r.dataset.i===curT))}
-async function addTracks(files){let n=0;for(const f of files){if(!f.type.startsWith('audio'))continue;const id=uid();try{await idb.put('track:'+id,f);S.tracks.push({id,name:f.name.replace(/\.[^.]+$/,'')});n++}catch(e){toast('Espace plein ?')}}save();toast(n?n+' musique(s) ajoutée(s)':'Aucun fichier audio');render()}
+const AEXT={mp3:'audio/mpeg',m4a:'audio/mp4',aac:'audio/aac',wav:'audio/wav',ogg:'audio/ogg',flac:'audio/flac',opus:'audio/ogg'};
+async function addTracks(files){let n=0;for(const f of files){const ext=(f.name.split('.').pop()||'').toLowerCase();if(!(f.type||'').startsWith('audio')&&!AEXT[ext])continue;const id=uid();
+  try{const blob=new Blob([await f.arrayBuffer()],{type:(f.type||'').startsWith('audio')?f.type:AEXT[ext]});await idb.put('track:'+id,blob);S.tracks.push({id,name:f.name.replace(/\.[^.]+$/,'')});n++}catch(e){toast('Impossible d’enregistrer '+f.name)}}save();if(n)toast(n+' musique(s) ajoutée(s)');else toast('Fichier non reconnu (MP3, M4A, WAV…)');render()}
 /* événements prévus */
 const plansOn=k=>S.plans.filter(p=>dayKey(p.start)===k).sort((a,b)=>a.start-b.start);
 function whenLbl(t){const k=dayKey(t),n=new Date(),tm=new Date(n);tm.setDate(n.getDate()+1);return k===dayKey(n)?'Aujourd’hui':k===dayKey(tm)?'Demain':WD[new Date(t).getDay()].slice(0,3)+'. '+new Date(t).getDate()}
@@ -624,7 +626,7 @@ function vHome(){
   <div class="np${audio.paused?'':' playing'}"><div class="cv">${curT>=0&&L[curT]&&coverOf(L[curT])?`<img src="${coverOf(L[curT])}" alt="">`:'♪'}</div><div class="now"><b id="npn">${esc(curT>=0&&L[curT]?L[curT].name:'Aucune musique')}</b><small>${L.length} morceau${L.length>1?'x':''}</small></div></div>
   <div class="player"><button class="pbtn" data-mprev aria-label="Morceau précédent">◀◀</button><button class="pbtn main" id="pp" data-mplay aria-label="Lecture ou pause">${audio.paused?'▶':'❚❚'}</button><button class="pbtn" data-mnext aria-label="Morceau suivant">▶▶</button></div>
   <div style="margin-top:10px">${L.map((t,i)=>`<div class="trk${i===curT?' on':''}" data-i="${i}"><label class="cov" aria-label="Choisir une cover pour ${esc(t.name)}">${coverOf(t)?`<img src="${coverOf(t)}" alt="">`:'+<br>cover'}<input type="file" accept="image/*" data-cov="${esc(t.id)}"></label><button class="t" data-ti="${i}">${esc(t.name)}</button>${t.own?`<button class="rm" data-trm="${esc(t.id)}" aria-label="Retirer">×</button>`:'<span></span>'}</div>`).join('')||'<div class="empty">Ajoute tes musiques depuis ton téléphone (fichiers MP3 ou M4A), puis touche le carré à gauche d’un titre pour lui mettre une cover.</div>'}</div>
-  <div class="row" style="margin-top:12px"><label class="btn filebtn"><span>Ajouter des musiques</span><input type="file" accept="audio/*" multiple id="musIn"></label></div></section>`;
+  <div class="row" style="margin-top:12px"><label class="btn filebtn"><span>Ajouter des musiques</span><input type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple id="musIn"></label></div></section>`;
 }
 
 const VIEWS={home:vHome,today:vToday,cal:vCal,stats:vStats,gym:vGym,cats:vCats};
