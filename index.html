@@ -370,7 +370,7 @@ const DEF={cats:[{id:'dev',name:'Devoirs',color:COLORS[0],goal:600},{id:'ext',na
 const GROUPS=[{id:'bras',name:'Bras',color:'#3ddc5a'},{id:'torse',name:'Torse',color:'#ff3b3b'},{id:'cuisses',name:'Cuisses',color:'#ffcc33'},{id:'dos',name:'Dos',color:'#4d8bff'},{id:'epaules',name:'Épaules',color:'#b18cff'},{id:'abdos',name:'Abdos',color:'#ff8a3d'}];
 const EXOS=[['Développé couché','torse'],['Squat','cuisses'],['Soulevé de terre','dos'],['Développé militaire','epaules'],['Tractions','dos'],['Pompes','torse'],['Curl biceps','bras'],['Dips','bras'],['Presse à cuisses','cuisses'],['Gainage','abdos']].map(([n,g],i)=>({id:'x'+i,name:n,g,...([4,5,7,9].includes(i)?{bw:true}:{})}));
 const GPAL=['#3ddc5a','#ff3b3b','#ffcc33','#4d8bff','#b18cff','#ff8a3d','#2ee6ff','#ff5fd2','#ffffff','#8a6b4a'];
-const STD={x0:['kg',[.5,.75,1,1.5,2],[.25,.5,.75,1,1.5]],x1:['kg',[.75,1.25,1.5,2.25,2.75],[.5,.75,1.25,1.5,2]],x2:['kg',[1,1.5,2,2.5,3],[.5,1,1.25,1.75,2.5]],x3:['kg',[.35,.55,.75,1,1.4],[.2,.35,.5,.75,1]],x4:['reps',[1,5,10,18,25],[1,2,5,10,15]],x5:['reps',[5,15,30,45,60],[2,8,18,30,45]],x6:['kg',[.2,.4,.6,.85,1.15],[.1,.2,.4,.6,.85]],x7:['reps',[2,8,15,25,35],[1,4,10,15,25]],x8:['kg',[1,2,3,4,5.5],[.5,1,2,3,4]],x9:['sec',[30,60,120,180,300],[30,60,120,180,300]],x10:['kg',[.5,1,1.5,2.25,3],[.3,.6,1,1.5,2]]};
+const STD={x0:['kg',[.5,.75,1,1.5,2],[.25,.5,.75,1,1.5]],x1:['kg',[.75,1.25,1.5,2.25,2.75],[.5,.75,1.25,1.5,2]],x2:['kg',[1,1.5,2,2.5,3],[.5,1,1.25,1.75,2.5]],x3:['kg',[.35,.55,.75,1,1.4],[.2,.35,.5,.75,1]],x4:['reps',[1,5,10,18,25],[1,2,5,10,15]],x5:['reps',[5,15,30,45,60],[2,8,18,30,45]],x6:['kg',[.2,.4,.6,.85,1.15],[.1,.2,.4,.6,.85]],x7:['reps',[2,8,15,25,35],[1,4,10,15,25]],x8:['kg',[1,2,3,4,5.5],[.5,1,2,3,4]],x9:['sec',[30,60,120,180,300],[30,60,120,180,300]],x10:['kg',[.5,1,1.5,2.25,3],[.3,.6,1,1.5,2]],x11:['kg',[.2,.35,.5,.7,.9],[.1,.2,.3,.45,.6]],x12:['kg',[.4,.65,.85,1.2,1.55],[.2,.35,.55,.8,1.1]],x13:['kg',[.75,1.25,1.75,2.5,3.25],[.5,.85,1.25,1.75,2.4]]};
 const RK=['E','D','C','B','A','S'],RKC={E:'#5b6b8f',D:'#3ddc5a',C:'#2ee6ff',B:'#4d8bff',A:'#ff3d7f',S:'#ffd23d'};
 const VOLT=[30,120,300,600,1000];
 const okCol=c=>/^#[0-9a-f]{6}$/i.test(c)?c:'#9db3e6';
@@ -379,6 +379,9 @@ try{S=JSON.parse(localStorage.getItem(KEY))||structuredClone(DEF)}catch(e){S=str
 function fill(){if(!Array.isArray(S.playlists))S.playlists=[];if(!S.covers||typeof S.covers!=='object')S.covers={};if(!Array.isArray(S.plans))S.plans=[];if(!Array.isArray(S.tracks))S.tracks=[];if(!Array.isArray(S.groups))S.groups=structuredClone(GROUPS);if(!Array.isArray(S.exos))S.exos=structuredClone(EXOS);if(!Array.isArray(S.lifts))S.lifts=[];
   if(!(S.v>=2)){let mg=S.groups.find(g=>g.id==='mollets'||/mollet/i.test(g.name));if(!mg){mg={id:'mollets',name:'Mollets',color:'#ff5fd2'};S.groups.push(mg)}if(!S.exos.some(x=>x.id==='x10'))S.exos.push({id:'x10',name:'Mollets debout',g:mg.id});S.v=2}
   if(!(S.v>=3)){for(const x of S.exos)if(['x4','x5','x7','x9'].includes(x.id)&&x.bw===undefined)x.bw=true;S.v=3}
+  if(!(S.v>=4)){const gid=(k,re)=>(S.groups.find(g=>g.id===k)||S.groups.find(g=>re.test(g.name))||{id:''}).id;
+    for(const [id,n,k,re] of [['x11','Développé couché haltères','torse',/torse|pec/i],['x12','Développé couché incliné','torse',/torse|pec/i],['x13','Hack squat','cuisses',/cuisse|jambe|quad/i]])if(!S.exos.some(x=>x.id===id))S.exos.push({id,name:n,g:gid(k,re)});
+    const lp=S.exos.find(x=>x.id==='x8');if(lp&&lp.name==='Presse à cuisses')lp.name='Leg press (presse à cuisses)';S.v=4}
   if(!S.exos.some(x=>'g' in x)){for(const x of S.exos){const d=EXOS.find(e=>e.id===x.id);x.g=d?d.g:''}for(const d of EXOS)if(!S.exos.some(x=>x.id===d.id))S.exos.push({...d})}}
 fill();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -609,7 +612,7 @@ function liftSheet(l,exoId){
   if(!l){const prev=exoId&&liftsOf(exoId).pop();l={exo:exoId||S.exos[0]?.id,date:Date.now(),sets:prev?prev.sets.map(s=>({...s})):[{r:10,w:0},{r:10,w:0},{r:10,w:0}],note:''}}
   let sets=l.sets.map(s=>({...s})),sel=l.exo;let mode=l.mode||(l.sets.some(z=>z.w>0)?'lest':'bw');
   const isBw=()=>!!exo(sel).bw;
-  const head=()=>`<span>Série</span><span>${STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps'}</span><span>${isBw()?(mode==='lest'?'Lest (kg)':''):'Charge (kg)'}</span><span></span>`;
+  const head=()=>`<span>Série</span><span>${STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps'}</span><span>${isBw()?(mode==='lest'?'Lest (kg)':''):sel==='x11'?'Kg par haltère':'Charge (kg)'}</span><span></span>`;
   const modeH=()=>isBw()?`<label class="f">Type</label><div class="chips"><button type="button" class="chip" style="--c:var(--cyan)" data-m="bw" aria-pressed="${mode==='bw'}">Poids du corps</button><button type="button" class="chip" style="--c:var(--pink)" data-m="lest" aria-pressed="${mode==='lest'}">Lesté</button></div>`:'';
   const rows=()=>sets.map((s,i)=>`<div class="setrow"><span class="no">${i+1}</span><input class="in" inputmode="numeric" aria-label="Répétitions série ${i+1}" data-si="${i}" data-k="r" value="${s.r}">${isBw()&&mode==='bw'?'<span style="color:var(--mute);font-weight:700;font-size:14px">poids du corps</span>':`<input class="in" inputmode="decimal" aria-label="${isBw()?'Lest':'Charge'} série ${i+1}" data-si="${i}" data-k="w" value="${kg(s.w)}">`}<button type="button" class="x" data-rm="${i}" aria-label="Retirer la série">×</button></div>`).join('');
   openSheet(`<h3>${isNew?'Noter une perf':'Modifier la perf'}</h3><form id="lf">
