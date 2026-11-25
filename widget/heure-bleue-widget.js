@@ -7,7 +7,7 @@ const FILE = "heure-bleue.json";
 const fm = FileManager.local();
 const path = fm.joinPath(fm.documentsDirectory(), FILE);
 let C = { bg1: "#06163a", bg2: "#123a8c", cyan: "#2ee6ff", pink: "#ff3d7f", ink: "#f3f7ff", mute: "#9db3e6" };
-const VERT = { bg1: "#f7f7f7", bg2: "#99ffcc", cyan: "#009e24", pink: "#0a0a0a", ink: "#0a0a0a", mute: "#4d4d4d" };
+const VERT = { bg1: "#f7f7f7", bg2: "#99ffcc", cyan: "#009e24", pink: "#0b5a24", ink: "#0b5a24", mute: "#3f7a52" };
 const RKC = { E: "#5b6b8f", D: "#3ddc5a", C: "#2ee6ff", B: "#4d8bff", A: "#ff3d7f", S: "#ffd23d" };
 const col = (h, a) => { try { return new Color(h, a === undefined ? 1 : a) } catch (e) { return new Color(C.mute) } };
 
