@@ -34,7 +34,33 @@ function rankBox(stack, r, size) {
   const t = b.addText(r || "?"); t.font = Font.blackSystemFont(size * 0.66); t.textColor = col(C.rk || "#06163a");
 }
 
+function buildLock(d, family) {
+  const w = new ListWidget(); w.url = "https://timothemahoukou.github.io/Heure-Bleue/";
+  w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
+  const white = new Color("#ffffff");
+  const t = (st, s, size, weight) => { const x = st.addText(String(s)); x.font = weight === "black" ? Font.blackSystemFont(size) : weight === "bold" ? Font.boldSystemFont(size) : Font.semiboldSystemFont(size); x.textColor = white; x.lineLimit = 1; x.minimumScaleFactor = 0.6; return x };
+  if (!d) { t(w, family === "accessoryCircular" ? "HB" : "Heure Bleue : touche Mettre à jour le widget", 12, "bold"); return w }
+  const tot = fmt((d.week && d.week.tot) || 0), e = (d.next || [])[0];
+  const nextTxt = e ? dayLbl(e.s) + " " + hm(e.s) + " · " + e.t : "Rien de prévu";
+  if (family === "accessoryInline") {
+    t(w, (d.timer ? "● " + d.timer.n : "Rang " + (d.rank || "?") + " · " + tot) + (e ? " · " + hm(e.s) + " " + e.t : ""), 12, "bold");
+  } else if (family === "accessoryCircular") {
+    w.addAccessoryWidgetBackground = true;
+    const s = w.addStack(); s.layoutVertically(); s.centerAlignContent();
+    const r1 = s.addStack(); r1.addSpacer(); t(r1, d.rank || "?", 26, "black"); r1.addSpacer();
+    const r2 = s.addStack(); r2.addSpacer(); t(r2, tot, 10, "bold"); r2.addSpacer();
+  } else {
+    const top = w.addStack(); top.centerAlignContent();
+    t(top, "HEURE BLEUE · RANG " + (d.rank || "?"), 11, "black"); top.addSpacer();
+    if (d.timer) { const tm = top.addDate(new Date(d.timer.s)); tm.applyTimerStyle(); tm.font = Font.boldMonospacedSystemFont(11); tm.textColor = white; tm.lineLimit = 1 }
+    t(w, nextTxt, 13, "bold");
+    t(w, "Semaine : " + tot + (d.today ? " · auj. " + fmt(d.today) : ""), 12);
+  }
+  return w;
+}
+
 function build(d, family) {
+  if (family && String(family).startsWith("accessory")) return buildLock(d, family);
   if (d && d.pal && d.pal.bg1) C = Object.assign({}, C, d.pal); else if (d && d.skin === "vert") C = VERT;
   const w = new ListWidget();
   const g = new LinearGradient(); g.colors = [col(C.bg2), col(C.bg1)]; g.locations = [0, 1]; g.startPoint = new Point(1, 0); g.endPoint = new Point(0, 1);
