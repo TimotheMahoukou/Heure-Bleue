@@ -307,7 +307,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const $=id=>document.getElementById(id);
 const DEF={cats:[{id:'dev',name:'Devoirs',color:COLORS[0],goal:600},{id:'ext',name:'Activités extrascolaires',color:COLORS[1],goal:240},{id:'gym',name:'Salle de sport',color:COLORS[2],goal:240}],entries:[],timer:null};
 const GROUPS=[{id:'bras',name:'Bras',color:'#3ddc5a'},{id:'torse',name:'Torse',color:'#ff3b3b'},{id:'cuisses',name:'Cuisses',color:'#ffcc33'},{id:'dos',name:'Dos',color:'#4d8bff'},{id:'epaules',name:'Épaules',color:'#b18cff'},{id:'abdos',name:'Abdos',color:'#ff8a3d'}];
-const EXOS=[['Développé couché','torse'],['Squat','cuisses'],['Soulevé de terre','dos'],['Développé militaire','epaules'],['Tractions','dos'],['Pompes','torse'],['Curl biceps','bras'],['Dips','bras'],['Presse à cuisses','cuisses'],['Gainage','abdos']].map(([n,g],i)=>({id:'x'+i,name:n,g}));
+const EXOS=[['Développé couché','torse'],['Squat','cuisses'],['Soulevé de terre','dos'],['Développé militaire','epaules'],['Tractions','dos'],['Pompes','torse'],['Curl biceps','bras'],['Dips','bras'],['Presse à cuisses','cuisses'],['Gainage','abdos']].map(([n,g],i)=>({id:'x'+i,name:n,g,...([4,5,7,9].includes(i)?{bw:true}:{})}));
 const GPAL=['#3ddc5a','#ff3b3b','#ffcc33','#4d8bff','#b18cff','#ff8a3d','#2ee6ff','#ff5fd2','#ffffff','#8a6b4a'];
 const STD={x0:['kg',[.5,.75,1,1.5,2],[.25,.5,.75,1,1.5]],x1:['kg',[.75,1.25,1.5,2.25,2.75],[.5,.75,1.25,1.5,2]],x2:['kg',[1,1.5,2,2.5,3],[.5,1,1.25,1.75,2.5]],x3:['kg',[.35,.55,.75,1,1.4],[.2,.35,.5,.75,1]],x4:['reps',[1,5,10,18,25],[1,2,5,10,15]],x5:['reps',[5,15,30,45,60],[2,8,18,30,45]],x6:['kg',[.2,.4,.6,.85,1.15],[.1,.2,.4,.6,.85]],x7:['reps',[2,8,15,25,35],[1,4,10,15,25]],x8:['kg',[1,2,3,4,5.5],[.5,1,2,3,4]],x9:['sec',[30,60,120,180,300],[30,60,120,180,300]],x10:['kg',[.5,1,1.5,2.25,3],[.3,.6,1,1.5,2]]};
 const RK=['E','D','C','B','A','S'],RKC={E:'#5b6b8f',D:'#3ddc5a',C:'#2ee6ff',B:'#4d8bff',A:'#ff3d7f',S:'#ffd23d'};
@@ -317,6 +317,7 @@ let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||structuredClone(DEF)}catch(e){S=structuredClone(DEF)}
 function fill(){if(!S.covers||typeof S.covers!=='object')S.covers={};if(!Array.isArray(S.plans))S.plans=[];if(!Array.isArray(S.tracks))S.tracks=[];if(!Array.isArray(S.groups))S.groups=structuredClone(GROUPS);if(!Array.isArray(S.exos))S.exos=structuredClone(EXOS);if(!Array.isArray(S.lifts))S.lifts=[];
   if(!(S.v>=2)){let mg=S.groups.find(g=>g.id==='mollets'||/mollet/i.test(g.name));if(!mg){mg={id:'mollets',name:'Mollets',color:'#ff5fd2'};S.groups.push(mg)}if(!S.exos.some(x=>x.id==='x10'))S.exos.push({id:'x10',name:'Mollets debout',g:mg.id});S.v=2}
+  if(!(S.v>=3)){for(const x of S.exos)if(['x4','x5','x7','x9'].includes(x.id)&&x.bw===undefined)x.bw=true;S.v=3}
   if(!S.exos.some(x=>'g' in x)){for(const x of S.exos){const d=EXOS.find(e=>e.id===x.id);x.g=d?d.g:''}for(const d of EXOS)if(!S.exos.some(x=>x.id===d.id))S.exos.push({...d})}}
 fill();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -422,8 +423,8 @@ const e1rm=s=>s.w*(1+s.r/30);
 function best(l){let b=null;for(const s of l.sets){if(!b||s.w>b.w||(s.w===b.w&&s.r>b.r))b=s}return b||{r:0,w:0}}
 function liftsOf(id){return S.lifts.filter(l=>l.exo===id).sort((a,b)=>a.date-b.date)}
 function record(id){let r=null;for(const l of liftsOf(id)){const b=best(l);if(!r||b.w>r.w||(b.w===r.w&&b.r>r.r))r={...b,date:l.date}}return r}
-function perf(s){return s.w?`${s.r} × ${kg(s.w)} kg`:`${s.r} reps`}
-function setsTxt(l){const g=[];for(const s of l.sets){const t=perf(s),p=g[g.length-1];if(p&&p.t===t)p.n++;else g.push({t,n:1})}return g.map(x=>(x.n>1?x.n+' × ':'')+(x.n>1?'('+x.t+')':x.t)).join(' · ')}
+function perf(s,bwx){return s.w?(bwx?`${s.r} × +${kg(s.w)} kg`:`${s.r} × ${kg(s.w)} kg`):`${s.r} reps`}
+function setsTxt(l){const g=[],bx=exo(l.exo).bw;for(const s of l.sets){const t=perf(s,bx),p=g[g.length-1];if(p&&p.t===t)p.n++;else g.push({t,n:1})}return g.map(x=>(x.n>1?x.n+' × ':'')+(x.n>1?'('+x.t+')':x.t)).join(' · ')}
 const dshort=t=>{const d=new Date(t);return d.getDate()+' '+MON[d.getMonth()]};
 /* rangs */
 function sc(v,t){if(!(v>0))return 0;if(v<t[0])return v/t[0];for(let i=0;i<4;i++)if(v<t[i+1])return i+1+(v-t[i])/(t[i+1]-t[i]);return Math.min(6,5+(v-t[4])/(t[4]*.5))}
@@ -432,10 +433,18 @@ const badge=(s,c='')=>{const r=rk(s);return `<span class="rk ${c}${r==='S'?' s':
 const PCT=[0,5,20,50,80,95,99];
 const pct=s=>{const i=Math.min(5,Math.floor(s));return Math.round(PCT[i]+(PCT[i+1]-PCT[i])*(s-i))};
 const prof=()=>S.profile||null;
-function exScore(x){const st=STD[x.id];const ls=liftsOf(x.id);if(!st||!ls.length)return null;const P=prof(),bw=P&&P.bw;let v=0,e1=0;
-  for(const l of ls)for(const z of l.sets){if(st[0]==='kg'){const e=z.w*(1+Math.min(z.r,12)/30);if(e>e1)e1=e}else{const r=st[0]==='reps'&&z.w>0&&bw?z.r*(1+z.w/bw):z.r;if(r>v)v=r}}
+/* part du poids du corps soulevée dans chaque exercice au poids du corps */
+const BWF={x4:1,x5:.64,x7:.92};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* correction de gabarit : poids (échelle allométrique) et taille (leviers plus longs) */
+function bodyAdj(type){const P=prof();if(!P||type==='sec')return 1;const f=P.sex==='f';const ref=f?60:75,hr=f?164:177;
+  const a=type==='kg'?clamp(Math.cbrt(P.bw/ref),.88,1.15):1;const h=P.h?clamp(Math.sqrt(P.h/hr),.9,1.1):1;return a*h}
+function exScore(x){const st=STD[x.id];const ls=liftsOf(x.id);if(!st||!ls.length)return null;const P=prof(),bw=P&&P.bw;let v=0,e1=0;const f=BWF[x.id]||1;
+  for(const l of ls)for(const z of l.sets){if(st[0]==='kg'){const e=z.w*(1+Math.min(z.r,12)/30);if(e>e1)e1=e}
+    else if(st[0]==='reps'){let r=z.r;if(z.w>0&&bw){const base=f*bw;r=30*((base+z.w)*(1+z.r/30)/base-1)}if(r>v)v=r}
+    else if(z.r>v)v=z.r}
   if(st[0]==='kg'){if(!bw||!e1)return null;v=e1/bw}
-  const t=st[P&&P.sex==='f'?2:1];return {type:st[0],v,e1,t,s:sc(v,t)}}
+  const adj=bodyAdj(st[0]);const t=st[P&&P.sex==='f'?2:1];return {type:st[0],v,e1,t,adj,s:sc(v*adj,t)}}
 function volG(g){const since=Date.now()-30*864e5;let r=0;for(const l of S.lifts){if(l.date<since)continue;const x=exo(l.exo);if(x.g!==g)continue;const sec=STD[x.id]&&STD[x.id][0]==='sec';for(const z of l.sets)r+=sec?z.r/10:z.r}return r}
 function gInfo(g){let best=null;for(const x of S.exos.filter(x=>x.g===g)){const e=exScore(x);if(e&&(!best||e.s>best.s))best=e}const vr=volG(g),vol=sc(vr,VOLT);return {s:best?.8*best.s+.2*vol:vol,str:best,vol,vr}}
 const BODYG=['epaules','torse','bras','abdos','dos','cuisses','mollets'];
@@ -462,25 +471,26 @@ function bodyPanel(){
     return `<button class="gr" style="--c:${okCol(g.color)}" data-zone="${esc(g.id)}">${badge(i.s)}<span><span class="nm">${esc(g.name)}</span><div class="sub">${i.str?'force + volume':'volume seulement'} · ${Math.round(i.vr)} reps / 30 j</div><div class="mini"><div style="width:${i.s>=6?100:fr*100}%"></div></div></span><span class="pc">${i.str?'<small>mieux que</small>'+pct(i.str.s)+' %':'<small>pas de</small>barème'}</span></button>`}).join('');
   return `<section class="panel" style="--i:0"><div class="d" style="font-size:30px">Ton corps</div>
   <div class="body"><svg viewBox="0 0 410 380" role="img" aria-label="Carte des muscles, face et dos">${figure(FRONT,0,'FACE')}${figure(BACK,210,'DOS')}</svg></div>
-  <div class="glob">${badge(G,'big')}<div class="t"><b>Rang global ${rk(G)}</b>${P?`${esc(kg(P.bw))} kg · ${P.sex==='f'?'femme':'homme'}`:'Profil à remplir pour te comparer'}<div class="row" style="margin-top:8px"><button class="btn ghost" data-prof style="min-height:40px;font-size:16px;padding:0 16px"><span>${P?'Modifier le profil':'Remplir mon profil'}</span></button></div></div></div>
-  </section><h2 class="d" style="--i:1">Rangs par muscle</h2><div style="--i:2">${rows}<div class="note">Le rang mélange ta force (meilleure charge ou meilleur nombre de reps, comparés à des barèmes publics selon ton poids et ton sexe) et ton volume des 30 derniers jours. « Mieux que » estime la part des gens qui s’entraînent que tu dépasses. Ce sont des repères, pas une vérité.</div></div>`}
+  <div class="glob">${badge(G,'big')}<div class="t"><b>Rang global ${rk(G)}</b>${P?`${esc(kg(P.bw))} kg · ${P.h?esc((P.h/100).toFixed(2).replace('.',','))+' m · ':''}${P.sex==='f'?'femme':'homme'}`:'Profil à remplir pour te comparer'}<div class="row" style="margin-top:8px"><button class="btn ghost" data-prof style="min-height:40px;font-size:16px;padding:0 16px"><span>${P?'Modifier le profil':'Remplir mon profil'}</span></button></div></div></div>
+  </section><h2 class="d" style="--i:1">Rangs par muscle</h2><div style="--i:2">${rows}<div class="note">Le rang mélange ta force (meilleure charge ou meilleur nombre de reps, comparés à des barèmes publics selon ton poids, ta taille et ton sexe ; un grand gabarit a des leviers plus longs, donc on corrige un peu ; quand tu es lesté, le lest s’ajoute à ton poids) et ton volume des 30 derniers jours. « Mieux que » estime la part des gens qui s’entraînent que tu dépasses. Ce sont des repères, pas une vérité.</div></div>`}
 function zoneSheet(gid){
   const g=grp(gid);if(!g.id)return;const i=gInfo(gid),P=prof();
   const xs=S.exos.filter(x=>x.g===gid).map(x=>{const e=exScore(x),st=STD[x.id];
     if(!e)return `<div class="xr"><span class="rk sm" style="--rc:#26386b"><span>–</span></span><div><div class="nm">${esc(x.name)}</div><div class="l">${!st?'Pas de barème : compte seulement dans le volume.':st[0]==='kg'&&!P?'Remplis ton profil pour avoir un rang.':'Pas encore de perf notée.'}</div></div></div>`;
-    const nx=Math.floor(e.s),unit=e.type==='kg'?' kg':e.type==='sec'?' s':' reps',val=e.type==='kg'?kg(Math.round(e.e1*2)/2)+' kg (max estimé sur 1 rep) · '+kg(Math.round(e.v*100)/100)+' × ton poids':Math.round(e.v)+unit;
-    const tgt=nx>=5?'Rang maximum atteint, respect.':`Prochain rang ${RK[nx+1]} : ${e.type==='kg'?kg(Math.ceil(e.t[nx]*P.bw*2)/2)+' kg sur 1 rep':e.t[nx]+unit}`;
+    const nx=Math.floor(e.s),unit=e.type==='kg'?' kg':e.type==='sec'?' s':' reps',val=e.type==='kg'?kg(Math.round(e.e1*2)/2)+' kg (max estimé sur 1 rep) · '+kg(Math.round(e.v*100)/100)+' × ton poids':Math.round(e.v)+unit+(x.bw&&e.type==='reps'?' (équivalent au poids du corps)':'');
+    const tgt=nx>=5?'Rang maximum atteint, respect.':`Prochain rang ${RK[nx+1]} : ${e.type==='kg'?kg(Math.ceil(e.t[nx]*P.bw/e.adj*2)/2)+' kg sur 1 rep':Math.ceil(e.t[nx]/e.adj)+unit+(x.bw&&e.type==='reps'?' au poids du corps':'')}`;
     return `<div class="xr">${badge(e.s)}<div><div class="nm">${esc(x.name)}</div><div class="l"><b>${esc(val)}</b></div><div class="l">Mieux que ~${pct(e.s)} % des pratiquants · ${esc(tgt)}</div></div></div>`}).join('');
   openSheet(`<h3 style="color:${okCol(g.color)}">${esc(g.name)}</h3><div class="glob">${badge(i.s,'big')}<div class="t"><b>Rang ${rk(i.s)}</b>${Math.round(i.vr)} reps sur 30 jours (volume : rang ${rk(i.vol)})</div></div>
   <div style="margin-top:12px">${xs||'<div class="empty">Aucun exercice dans ce groupe.</div>'}</div><div class="acts"><button class="btn ghost" data-close><span>Fermer</span></button></div>`)}
 function profSheet(){
-  const P=prof()||{bw:'',sex:'m'};let sx=P.sex;
+  const P=prof()||{bw:'',sex:'m',h:''};let sx=P.sex;
   openSheet(`<h3>Ton profil</h3><div style="color:var(--mute);font-weight:500">Ça sert seulement à te comparer aux barèmes de force. Ça reste sur ton téléphone.</div><form id="pf">
   <label class="f" for="pbw">Poids du corps (kg)</label><input class="in" id="pbw" inputmode="decimal" required placeholder="ex. 68" value="${esc(P.bw?kg(P.bw):'')}">
+  <label class="f" for="phh">Taille (cm)</label><input class="in" id="phh" inputmode="numeric" required placeholder="ex. 178" value="${esc(P.h||'')}">
   <label class="f">Barème</label><div class="chips" id="psx"><button type="button" class="chip" style="--c:var(--cyan)" data-s="m" aria-pressed="${sx==='m'}">Homme</button><button type="button" class="chip" style="--c:var(--cyan)" data-s="f" aria-pressed="${sx==='f'}">Femme</button></div>
   <div class="acts"><button class="btn" type="submit"><span>Enregistrer</span></button><button class="btn ghost" type="button" data-close><span>Annuler</span></button></div></form>`);
   $('psx').onclick=ev=>{const b=ev.target.closest('[data-s]');if(!b)return;sx=b.dataset.s;$('psx').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b))};
-  $('pf').onsubmit=ev=>{ev.preventDefault();const bw=num($('pbw').value);if(bw<25||bw>250){toast('Poids entre 25 et 250 kg');return}S.profile={bw,sex:sx};save();closeSheet();render();toast('Profil enregistré')}}
+  $('pf').onsubmit=ev=>{ev.preventDefault();const bw=num($('pbw').value);const h=Math.round(num($('phh').value));if(bw<25||bw>250){toast('Poids entre 25 et 250 kg');return}if(h<120||h>230){toast('Taille entre 120 et 230 cm');return}S.profile={bw,sex:sx,h};save();closeSheet();render();toast('Profil enregistré')}}
 function boom(t){const b=$('boom');b.firstElementChild.textContent=t;b.classList.remove('go');void b.offsetWidth;b.classList.add('go')}
 
 function vGym(){
@@ -488,9 +498,9 @@ function vGym(){
   const recs=used.map(x=>[x,record(x.id)]).sort((a,b)=>b[1].date-a[1].date).slice(0,4);
   const wk=monday(new Date());const nWk=new Set(S.lifts.filter(l=>l.date>=+wk).map(l=>dayKey(l.date))).size;
   const list=S.exos.filter(x=>!gymF||x.g===gymF).map((x,i)=>{const ls=liftsOf(x.id),last=ls[ls.length-1],r=record(x.id);
-    return `<li style="--i:${i}"><button class="ex" style="--c:${xcol(x)}" data-exo="${esc(x.id)}"><span class="gp">${esc(grp(x.g).name)}${(()=>{const e=exScore(x);return e?' · rang '+rk(e.s):''})()}</span><span class="nm">${esc(x.name)}</span><span class="ls">${last?'Dernière fois · '+esc(dshort(last.date))+' · '+esc(perf(best(last))):'Pas encore noté'}</span><span class="pr">${r?esc(r.w?kg(r.w)+' kg':r.r+' reps')+'<small>RECORD</small>':''}</span></button></li>`}).join('');
+    return `<li style="--i:${i}"><button class="ex" style="--c:${xcol(x)}" data-exo="${esc(x.id)}"><span class="gp">${esc(grp(x.g).name)}${(()=>{const e=exScore(x);return e?' · rang '+rk(e.s):''})()}</span><span class="nm">${esc(x.name)}</span><span class="ls">${last?'Dernière fois · '+esc(dshort(last.date))+' · '+esc(perf(best(last),x.bw)):'Pas encore noté'}</span><span class="pr">${r?esc(r.w?(x.bw?'+':'')+kg(r.w)+' kg':r.r+' reps')+'<small>RECORD</small>':''}</span></button></li>`}).join('');
   return bodyPanel()+`<h2 class="d" style="--i:3">Records</h2><section class="panel" style="--i:3"><div class="row" style="justify-content:space-between"><div><div style="color:var(--mute)">${nWk} séance${nWk>1?'s':''} de muscu notée${nWk>1?'s':''} cette semaine</div></div><button class="btn" data-lift="new"><span>Noter une perf</span></button></div>
-  ${recs.length?`<div class="recs" style="margin-top:14px">${recs.map(([x,r])=>`<button class="rec" style="--c:${xcol(x)}" data-exo="${esc(x.id)}"><div class="k">${esc(x.name)}</div><div class="v d">${r.w?esc(kg(r.w))+'<small> kg × '+r.r+'</small>':r.r+'<small> reps</small>'}</div><div class="w">le ${esc(dshort(r.date))}</div></button>`).join('')}</div>`:'<div class="empty">Note ta première perf : tes records apparaîtront ici.</div>'}</section>
+  ${recs.length?`<div class="recs" style="margin-top:14px">${recs.map(([x,r])=>`<button class="rec" style="--c:${xcol(x)}" data-exo="${esc(x.id)}"><div class="k">${esc(x.name)}</div><div class="v d">${r.w?(x.bw?'+':'')+esc(kg(r.w))+'<small> kg × '+r.r+'</small>':r.r+'<small> reps</small>'}</div><div class="w">le ${esc(dshort(r.date))}</div></button>`).join('')}</div>`:'<div class="empty">Note ta première perf : tes records apparaîtront ici.</div>'}</section>
   <h2 class="d" style="--i:1">Exercices</h2>
   <div class="gchips" style="--i:2"><button class="chip" style="--c:#fff" data-gf="" aria-pressed="${!gymF}">Tous</button>${S.groups.map(g=>`<button class="chip" style="--c:${okCol(g.color)}" data-gf="${esc(g.id)}" aria-pressed="${gymF===g.id}">${esc(g.name)}</button>`).join('')}</div>
   <ul class="menu" style="--i:3">${list||'<li class="empty">Aucun exercice dans ce groupe.</li>'}</ul>
@@ -501,25 +511,30 @@ function vGym(){
 function liftSheet(l,exoId){
   const isNew=!l;
   if(!l){const prev=exoId&&liftsOf(exoId).pop();l={exo:exoId||S.exos[0]?.id,date:Date.now(),sets:prev?prev.sets.map(s=>({...s})):[{r:10,w:0},{r:10,w:0},{r:10,w:0}],note:''}}
-  let sets=l.sets.map(s=>({...s})),sel=l.exo;
-  const rows=()=>sets.map((s,i)=>`<div class="setrow"><span class="no">${i+1}</span><input class="in" inputmode="numeric" aria-label="Répétitions série ${i+1}" data-si="${i}" data-k="r" value="${s.r}"><input class="in" inputmode="decimal" aria-label="Charge série ${i+1}" data-si="${i}" data-k="w" value="${kg(s.w)}"><button type="button" class="x" data-rm="${i}" aria-label="Retirer la série">×</button></div>`).join('');
+  let sets=l.sets.map(s=>({...s})),sel=l.exo;let mode=l.mode||(l.sets.some(z=>z.w>0)?'lest':'bw');
+  const isBw=()=>!!exo(sel).bw;
+  const head=()=>`<span>Série</span><span>${STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps'}</span><span>${isBw()?(mode==='lest'?'Lest (kg)':''):'Charge (kg)'}</span><span></span>`;
+  const modeH=()=>isBw()?`<label class="f">Type</label><div class="chips"><button type="button" class="chip" style="--c:var(--cyan)" data-m="bw" aria-pressed="${mode==='bw'}">Poids du corps</button><button type="button" class="chip" style="--c:var(--pink)" data-m="lest" aria-pressed="${mode==='lest'}">Lesté</button></div>`:'';
+  const rows=()=>sets.map((s,i)=>`<div class="setrow"><span class="no">${i+1}</span><input class="in" inputmode="numeric" aria-label="Répétitions série ${i+1}" data-si="${i}" data-k="r" value="${s.r}">${isBw()&&mode==='bw'?'<span style="color:var(--mute);font-weight:700;font-size:14px">poids du corps</span>':`<input class="in" inputmode="decimal" aria-label="${isBw()?'Lest':'Charge'} série ${i+1}" data-si="${i}" data-k="w" value="${kg(s.w)}">`}<button type="button" class="x" data-rm="${i}" aria-label="Retirer la série">×</button></div>`).join('');
   openSheet(`<h3>${isNew?'Noter une perf':'Modifier la perf'}</h3><form id="lf">
   <label class="f">Exercice</label><div class="chips" id="lex">${S.exos.map(x=>`<button type="button" class="chip" style="--c:${xcol(x)}" data-x="${esc(x.id)}" aria-pressed="${x.id===sel}">${esc(x.name)}</button>`).join('')}</div>
   <label class="f" for="ldate">Jour</label><input class="in" type="date" id="ldate" value="${dayKey(l.date)}" required>
-  <div class="sh"><span>Série</span><span id="lrl">${STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps'}</span><span>Charge (kg)</span><span></span></div><div id="lsets">${rows()}</div>
+  <div id="lmw">${modeH()}</div><div class="sh" id="lsh">${head()}</div><div id="lsets">${rows()}</div>
   <div class="row" style="margin-top:12px"><button type="button" class="btn alt" id="ladd"><span>+ Série</span></button></div>
   <label class="f" for="lnote">Note (facultatif)</label><input class="in" id="lnote" maxlength="80" placeholder="ex. bonne forme, prise serrée…" value="${esc(l.note)}">
   <div class="acts"><button class="btn" type="submit"><span>Enregistrer</span></button>${isNew?'':'<button class="btn danger" type="button" id="ldel"><span>Supprimer</span></button>'}<button class="btn ghost" type="button" data-close><span>Annuler</span></button></div></form>`);
   const box=$('lsets');
+  const redraw=()=>{$('lmw').innerHTML=modeH();$('lsh').innerHTML=head();box.innerHTML=rows()};
+  $('lmw').onclick=ev=>{const b=ev.target.closest('[data-m]');if(!b)return;mode=b.dataset.m;if(mode==='bw')sets.forEach(z=>z.w=0);redraw()};
   box.oninput=ev=>{const t=ev.target;if(t.dataset.si!=null)sets[+t.dataset.si][t.dataset.k]=num(t.value)};
   box.onclick=ev=>{const b=ev.target.closest('[data-rm]');if(!b)return;sets.splice(+b.dataset.rm,1);box.innerHTML=rows()};
   $('ladd').onclick=()=>{sets.push({...(sets[sets.length-1]||{r:10,w:0})});box.innerHTML=rows()};
-  $('lex').onclick=ev=>{const b=ev.target.closest('[data-x]');if(!b)return;sel=b.dataset.x;$('lrl').textContent=STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps';$('lex').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b))};
-  $('lf').onsubmit=ev=>{ev.preventDefault();const ok=sets.filter(s=>s.r>0).map(s=>({r:Math.round(s.r),w:Math.max(0,s.w)}));if(!ok.length){toast('Ajoute au moins une série');return}
+  $('lex').onclick=ev=>{const b=ev.target.closest('[data-x]');if(!b)return;sel=b.dataset.x;if(isBw()&&!sets.some(z=>z.w>0))mode='bw';redraw();$('lex').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',x===b))};
+  $('lf').onsubmit=ev=>{ev.preventDefault();const zero=isBw()&&mode==='bw';const ok=sets.filter(s=>s.r>0).map(s=>({r:Math.round(s.r),w:zero?0:Math.max(0,s.w)}));if(!ok.length){toast('Ajoute au moins une série');return}
     const d=fromKey($('ldate').value);const n=new Date();d.setHours(n.getHours(),n.getMinutes());
     const old=S.lifts.filter(x=>x.exo===sel&&x.id!==l.id).map(best).reduce((a,b)=>!a||b.w>a.w||(b.w===a.w&&b.r>a.r)?b:a,null);
     const nb=best({sets:ok});const isPR=old&&(nb.w>old.w||(nb.w===old.w&&nb.r>old.r));
-    const before=rankMap();const o={id:l.id||uid(),exo:sel,date:+d,sets:ok,note:$('lnote').value.trim()};
+    const before=rankMap();const o={id:l.id||uid(),exo:sel,date:+d,sets:ok,note:$('lnote').value.trim(),mode:isBw()?mode:undefined};
     if(isNew)S.lifts.push(o);else Object.assign(S.lifts.find(x=>x.id===l.id),o);
     save();closeSheet();render();
     const after=rankMap(),gid=exo(sel).g;
@@ -531,7 +546,7 @@ function exoSheet(id){
   openSheet(`<h3>${esc(x.name)}</h3>
   ${ls.length>1?'<div class="prog" id="prog"></div><div style="color:var(--mute);font-size:14px">Meilleure série de chaque séance (charge en kg, ou reps sans charge)</div>':''}
   <div class="row" style="margin:14px 0"><button class="btn" data-lift="${esc(id)}"><span>Noter une perf</span></button></div>
-  ${ls.length?ls.slice().reverse().map(l=>{const b=best(l),isR=r&&b.w===r.w&&b.r===r.r;return `<button class="hist" data-liftid="${esc(l.id)}"><span class="dt">${esc(dshort(l.date))} ${new Date(l.date).getFullYear()}${l.note?' · '+esc(l.note):''}</span><span class="st">${esc(setsTxt(l))}</span><span class="b${isR?' pr':''}">${esc(perf(b))}</span></button>`}).join(''):'<div class="empty">Aucune perf pour cet exercice.</div>'}
+  ${ls.length?ls.slice().reverse().map(l=>{const b=best(l),isR=r&&b.w===r.w&&b.r===r.r;return `<button class="hist" data-liftid="${esc(l.id)}"><span class="dt">${esc(dshort(l.date))} ${new Date(l.date).getFullYear()}${l.note?' · '+esc(l.note):''}</span><span class="st">${esc(setsTxt(l))}</span><span class="b${isR?' pr':''}">${esc(perf(b,x.bw))}</span></button>`}).join(''):'<div class="empty">Aucune perf pour cet exercice.</div>'}
   <div class="acts"><button class="btn ghost" type="button" id="xren"><span>Modifier</span></button><button class="btn danger" type="button" id="xdel"><span>Supprimer</span></button><button class="btn ghost" data-close><span>Fermer</span></button></div>`);
   const pg=$('prog');
   if(pg){const W=pg.clientWidth,H=pg.clientHeight,pad=28,useW=ls.some(l=>best(l).w>0);
@@ -545,12 +560,14 @@ function exoSheet(id){
   $('xdel').onclick=()=>confirmSheet('Supprimer « '+x.name+' » et ses '+ls.length+' perf(s) ?',()=>{S.exos=S.exos.filter(e=>e.id!==id);S.lifts=S.lifts.filter(l=>l.exo!==id);save();render()});
 }
 function exoNameSheet(x){
-  const isNew=!x;x=x||{id:uid(),name:'',g:gymF||S.groups[0]?.id||''};let g=x.g;
+  const isNew=!x;x=x||{id:uid(),name:'',g:gymF||S.groups[0]?.id||''};let g=x.g,bwx=!!x.bw;
   openSheet(`<h3>${isNew?'Nouvel exercice':'Modifier l’exercice'}</h3><form id="xf"><label class="f" for="xn">Nom</label><input class="in" id="xn" maxlength="32" required placeholder="ex. Extension triceps, Mollets" value="${esc(x.name)}">
   <label class="f">Groupe musculaire</label><div class="chips" id="xg">${S.groups.map(k=>`<button type="button" class="chip" style="--c:${okCol(k.color)}" data-g="${esc(k.id)}" aria-pressed="${k.id===g}">${esc(k.name)}</button>`).join('')}</div>
+  <label class="f">Type d’exercice</label><div class="chips" id="xbw"><button type="button" class="chip" style="--c:var(--cyan)" data-b="0" aria-pressed="${!bwx}">Avec charge</button><button type="button" class="chip" style="--c:var(--cyan)" data-b="1" aria-pressed="${bwx}">Poids du corps</button></div>
   <div class="acts"><button class="btn" type="submit"><span>Enregistrer</span></button><button class="btn ghost" type="button" data-close><span>Annuler</span></button></div></form>`);
+  $('xbw').onclick=ev=>{const b=ev.target.closest('[data-b]');if(!b)return;bwx=b.dataset.b==='1';$('xbw').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b))};
   $('xg').onclick=ev=>{const b=ev.target.closest('[data-g]');if(!b)return;g=b.dataset.g;$('xg').querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b))};
-  $('xf').onsubmit=ev=>{ev.preventDefault();const n=$('xn').value.trim();if(!n)return;if(isNew)S.exos.push({id:x.id,name:n,g});else Object.assign(exo(x.id),{name:n,g});save();closeSheet();render();toast('Exercice enregistré')};
+  $('xf').onsubmit=ev=>{ev.preventDefault();const n=$('xn').value.trim();if(!n)return;if(isNew)S.exos.push({id:x.id,name:n,g,bw:bwx});else Object.assign(exo(x.id),{name:n,g,bw:bwx});save();closeSheet();render();toast('Exercice enregistré')};
 }
 function grpSheet(g){
   const isNew=!g;g=g||{id:uid(),name:'',color:GPAL[S.groups.length%GPAL.length]};let col=okCol(g.color);
