@@ -30,9 +30,18 @@ function txt(stack, s, size, color, weight) {
   t.font = weight === "black" ? Font.blackSystemFont(size) : weight === "bold" ? Font.boldSystemFont(size) : Font.semiboldSystemFont(size);
   t.textColor = col(color); t.lineLimit = 1; t.minimumScaleFactor = 0.6; return t;
 }
+// Badge de rang dessiné en image : reste lisible en mode Teinté / Transparent
+// (l'iPhone y garde le contraste clair/foncé d'une image, alors qu'un texte posé sur un fond coloré devient blanc sur blanc).
+function rankImg(r, size) {
+  const dc = new DrawContext(); dc.size = new Size(size, size); dc.opaque = false; dc.respectScreenScale = true;
+  const p = new Path(); p.addRoundedRect(new Rect(0, 0, size, size), size * 0.12, size * 0.12);
+  dc.addPath(p); dc.setFillColor(col(RKC[r] || "#9db3e6")); dc.fillPath();
+  dc.setFont(Font.blackSystemFont(size * 0.66)); dc.setTextColor(col("#06163a")); dc.setTextAlignedCenter();
+  dc.drawTextInRect(r || "?", new Rect(0, size * 0.1, size, size * 0.85));
+  return dc.getImage();
+}
 function rankBox(stack, r, size) {
-  const b = stack.addStack(); b.size = new Size(size, size); b.backgroundColor = col(RKC[r] || C.mute); b.cornerRadius = 4; b.centerAlignContent();
-  const t = b.addText(r || "?"); t.font = Font.blackSystemFont(size * 0.66); t.textColor = col(C.rk || "#06163a");
+  const im = stack.addImage(rankImg(r, size)); im.imageSize = new Size(size, size);
 }
 
 /* ---- widget Sport : silhouette + rangs (paramètre du widget : sport) ---- */
