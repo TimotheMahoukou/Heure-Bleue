@@ -1,0 +1,16 @@
+{
+  "name": "Heure Bleue",
+  "short_name": "Heure Bleue",
+  "description": "Suis le temps que tu passes sur tes devoirs, activités et sport.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06163a",
+  "theme_color": "#06163a",
+  "lang": "fr",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
