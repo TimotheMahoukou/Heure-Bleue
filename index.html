@@ -416,10 +416,39 @@ function vStats(){
   <h2 class="d" style="--i:2">Répartition</h2><div style="--i:3">${tot?rows:'<div class="empty">Pas encore de temps noté cette semaine.</div>'+rows}</div>`;
 }
 
+/* widget iPhone via Scriptable */
+function widgetData(){
+  const a=monday(new Date()),b=new Date(a);b.setDate(a.getDate()+7);
+  const cats=S.cats.map(c=>({n:c.name,c:c.color,m:Math.round(range(+a,+b,c.id)/60)})).filter(c=>c.m>0).sort((x,y)=>y.m-x.m);
+  const next=S.plans.filter(p=>p.start+p.dur*60e3>=Date.now()).sort((x,y)=>x.start-y.start).slice(0,6).map(p=>({t:p.title,s:p.start,c:p.cat?cat(p.cat).color:'#ffffff'}));
+  const groups=BODYG.map(k=>bodyGroup(k)).filter(Boolean).map(g=>({n:g.name,c:okCol(g.color),r:rk(gInfo(g.id).s)}));
+  return {hb:1,at:Date.now(),rank:rk(globalScore()),today:Math.round(secsOn(dayKey(new Date()))/60),week:{tot:Math.round(range(+a,+b)/60),cats},next,groups,timer:S.timer?{n:cat(S.timer.cat).name,c:cat(S.timer.cat).color,s:S.timer.start}:null};
+}
+function updateWidget(){
+  const txt=JSON.stringify(widgetData());
+  const go=()=>{toast('Copié ! Ouverture de Scriptable…');setTimeout(()=>{location.href='scriptable:///run?scriptName='+encodeURIComponent('Heure Bleue')},500)};
+  try{navigator.clipboard.writeText(txt).then(go,()=>toast('Copie refusée par le téléphone'))}catch(e){toast('Copie impossible ici')}
+}
+function copyScript(){
+  const url='widget/heure-bleue-widget.js';
+  try{
+    if(window.ClipboardItem&&navigator.clipboard.write){navigator.clipboard.write([new ClipboardItem({'text/plain':fetch(url).then(r=>{if(!r.ok)throw 0;return r.blob()}).then(b=>new Blob([b],{type:'text/plain'}))})]).then(()=>toast('Script copié !'),()=>toast('Copie impossible : ouvre le lien du script'));}
+    else fetch(url).then(r=>r.text()).then(t=>navigator.clipboard.writeText(t)).then(()=>toast('Script copié !'),()=>toast('Copie impossible : ouvre le lien du script'));
+  }catch(e){toast('Copie impossible ici')}
+}
 function vCats(){
   return `<h2 class="d" style="--i:0">Tes activités</h2><div style="--i:1">${S.cats.map(c=>`<button class="cat" style="--c:${esc(c.color)}" data-cat="${esc(c.id)}"><i></i><span class="nm" style="font-weight:800;text-transform:uppercase">${esc(c.name)}</span><span class="g">${c.goal?'objectif '+esc(fmt(c.goal*60))+'/sem.':'sans objectif'}</span></button>`).join('')}
   <div class="row" style="margin-top:14px"><button class="btn alt" data-cat="new"><span>Nouvelle activité</span></button></div></div>
-  <h2 class="d" style="--i:2">Sauvegarde</h2><section class="panel" style="--i:3"><div style="font-weight:500">Tes données (temps et perfs de sport) restent sur ce téléphone. Copie-les de temps en temps pour ne rien perdre, ou pour les passer sur un autre appareil.</div>
+  <h2 class="d" style="--i:2">Widget iPhone</h2><section class="panel" style="--i:2"><div style="font-weight:500">Avec l’app gratuite <b>Scriptable</b>, tu peux afficher ton rang, ta semaine et tes prochains événements en widget sur l’écran d’accueil.</div>
+  <ol style="font-weight:500;padding-left:20px;margin:10px 0">
+  <li>Installe <b>Scriptable</b> depuis l’App Store.</li>
+  <li>Touche « Copier le script » ci-dessous.</li>
+  <li>Dans Scriptable, touche <b>+</b>, colle le texte, puis touche le titre en haut et renomme le script <b>Heure Bleue</b>.</li>
+  <li>Reviens ici et touche « Mettre à jour le widget ».</li>
+  <li>Sur l’écran d’accueil : appui long, <b>+</b>, Scriptable, taille moyenne. Puis appui long sur le widget, <b>Modifier le widget</b>, Script : <b>Heure Bleue</b>.</li></ol>
+  <div class="row"><button class="btn" data-wup><span>Mettre à jour le widget</span></button><button class="btn ghost" data-wscript><span>Copier le script</span></button></div>
+  <div class="note">Le widget se met à jour à chaque fois que tu touches « Mettre à jour le widget ». L’iPhone le rafraîchit ensuite tout seul, souvent en quelques minutes.</div></section>
+  <h2 class="d" style="--i:3">Sauvegarde</h2><section class="panel" style="--i:3"><div style="font-weight:500">Tes données (temps et perfs de sport) restent sur ce téléphone. Copie-les de temps en temps pour ne rien perdre, ou pour les passer sur un autre appareil.</div>
   <div class="row" style="margin-top:12px"><button class="btn" data-exp><span>Copier mes données</span></button><button class="btn ghost" data-imp><span>Importer</span></button></div>
   <div class="row" style="margin-top:16px"><button class="btn danger" data-wipe><span>Tout effacer</span></button></div></section>`;
 }
@@ -660,7 +689,7 @@ function vHome(){
   <ul class="hmenu">${items.map(([v,t,sub],i)=>`<li style="--i:${i}"><button data-v="${v}">${t}<small>${sub}</small></button></li>`).join('')}</ul></section>
   <div class="row" style="justify-content:flex-start;margin:-4px 0 8px;--i:1"><label class="btn ghost filebtn" style="min-height:40px;font-size:15px;padding:0 14px"><span>${heroURL?'Changer le visuel':'Choisir un visuel'}</span><input type="file" accept="image/*" id="heroIn"></label></div>
   <h2 class="d" style="--i:2">À venir</h2><div style="--i:3">${up.length?up.map(planRow).join(''):'<div class="empty">Rien de prévu. Ajoute un contrôle, un entraînement ou une activité.</div>'}
-  <div class="row" style="margin-top:12px"><button class="btn alt" data-plannew><span>Prévoir quelque chose</span></button></div></div>
+  <div class="row" style="margin-top:12px"><button class="btn alt" data-plannew><span>Prévoir quelque chose</span></button><button class="btn ghost" data-wup style="min-height:40px;font-size:15px;padding:0 14px"><span>Mettre à jour le widget</span></button></div></div>
   <h2 class="d" style="--i:4">Musique</h2><section class="panel" style="--i:5">
   <div class="np${audio.paused?'':' playing'}"><div class="vinyl" aria-hidden="true"><div class="cv">${curT>=0&&L[curT]&&coverOf(L[curT])?`<img src="${coverOf(L[curT])}" alt="">`:'♪'}</div></div><div class="now"><b id="npn">${esc(curT>=0&&L[curT]?L[curT].name:'Aucune musique')}</b><small>${L.length} morceau${L.length>1?'x':''}</small></div></div>
   <div class="player"><button class="pbtn" data-mprev aria-label="Morceau précédent">◀◀</button><button class="pbtn main" id="pp" data-mplay aria-label="Lecture ou pause">${audio.paused?'▶':'❚❚'}</button><button class="pbtn" data-mnext aria-label="Morceau suivant">▶▶</button></div>
@@ -735,6 +764,8 @@ document.addEventListener('click',ev=>{
   else if(ds.exo)exoSheet(ds.exo);
   else if('newexo' in ds)exoNameSheet(null);
   else if('prof' in ds)profSheet();
+  else if('wup' in ds)updateWidget();
+  else if('wscript' in ds)copyScript();
   else if('plannew' in ds)planSheet(null,ds.plannew||null);
   else if(ds.plan)planSheet(S.plans.find(p=>p.id===ds.plan));
   else if('mplay' in ds)togglePlay();
