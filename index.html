@@ -220,10 +220,14 @@ input[type=color]{width:64px;height:46px;padding:2px;background:#020b22;border:1
 .cov img{width:100%;height:100%;object-fit:cover}
 .cov input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .np{display:flex;gap:14px;align-items:center;margin-bottom:12px}
-.np .cv{width:96px;height:96px;flex:none;background:linear-gradient(135deg,var(--blue),#020b22);display:grid;place-items:center;font:400 40px Anton,Impact,sans-serif;color:var(--cyan);transform:skewX(-6deg);box-shadow:5px 5px 0 var(--pink);overflow:hidden}
-.np .cv img{width:100%;height:100%;object-fit:cover}
-.np.playing .cv{animation:beat 1.2s ease-in-out infinite}
-@keyframes beat{50%{transform:skewX(-6deg) scale(1.04)}}
+.vinyl{position:relative;width:128px;height:128px;flex:none;border-radius:50%;display:grid;place-items:center;
+background:conic-gradient(from 30deg,rgba(255,255,255,.14),transparent 12%,transparent 38%,rgba(46,230,255,.16) 50%,transparent 62%,transparent 88%,rgba(255,255,255,.14)),repeating-radial-gradient(circle,#0b0d14 0 2px,#1a1d27 2px 3px);
+box-shadow:0 0 0 3px #020b22,0 0 0 6px var(--pink),0 0 26px 6px rgba(255,61,127,.35);animation:spin 2.4s linear infinite;animation-play-state:paused}
+.np.playing .vinyl{animation-play-state:running}
+.vinyl .cv{width:44%;height:44%;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--pink));font:400 22px Anton,Impact,sans-serif;color:#fff;box-shadow:0 0 0 2px #000}
+.vinyl .cv img{width:100%;height:100%;object-fit:cover}
+.vinyl::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#020b22;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+@keyframes spin{to{transform:rotate(360deg)}}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 /* pas de zoom, pas de barre de défilement, portrait */
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;scrollbar-width:none}
@@ -658,7 +662,7 @@ function vHome(){
   <h2 class="d" style="--i:2">À venir</h2><div style="--i:3">${up.length?up.map(planRow).join(''):'<div class="empty">Rien de prévu. Ajoute un contrôle, un entraînement ou une activité.</div>'}
   <div class="row" style="margin-top:12px"><button class="btn alt" data-plannew><span>Prévoir quelque chose</span></button></div></div>
   <h2 class="d" style="--i:4">Musique</h2><section class="panel" style="--i:5">
-  <div class="np${audio.paused?'':' playing'}"><div class="cv">${curT>=0&&L[curT]&&coverOf(L[curT])?`<img src="${coverOf(L[curT])}" alt="">`:'♪'}</div><div class="now"><b id="npn">${esc(curT>=0&&L[curT]?L[curT].name:'Aucune musique')}</b><small>${L.length} morceau${L.length>1?'x':''}</small></div></div>
+  <div class="np${audio.paused?'':' playing'}"><div class="vinyl" aria-hidden="true"><div class="cv">${curT>=0&&L[curT]&&coverOf(L[curT])?`<img src="${coverOf(L[curT])}" alt="">`:'♪'}</div></div><div class="now"><b id="npn">${esc(curT>=0&&L[curT]?L[curT].name:'Aucune musique')}</b><small>${L.length} morceau${L.length>1?'x':''}</small></div></div>
   <div class="player"><button class="pbtn" data-mprev aria-label="Morceau précédent">◀◀</button><button class="pbtn main" id="pp" data-mplay aria-label="Lecture ou pause">${audio.paused?'▶':'❚❚'}</button><button class="pbtn" data-mnext aria-label="Morceau suivant">▶▶</button></div>
   <div style="margin-top:10px">${L.map((t,i)=>`<div class="trk${i===curT?' on':''}" data-i="${i}"><label class="cov" aria-label="Choisir une cover pour ${esc(t.name)}">${coverOf(t)?`<img src="${coverOf(t)}" alt="">`:'+<br>cover'}<input type="file" accept="image/*" data-cov="${esc(t.id)}"></label><button class="t" data-ti="${i}">${esc(t.name)}</button>${t.own?`<button class="rm" data-trm="${esc(t.id)}" aria-label="Retirer">×</button>`:'<span></span>'}</div>`).join('')||'<div class="empty">Ajoute tes musiques depuis ton téléphone (fichiers MP3 ou M4A), puis touche le carré à gauche d’un titre pour lui mettre une cover.</div>'}</div>
   <div class="row" style="margin-top:12px"><label class="btn filebtn"><span>Ajouter des musiques</span><input type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.flac" multiple id="musIn"></label></div></section>`;
