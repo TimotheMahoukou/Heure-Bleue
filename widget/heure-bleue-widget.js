@@ -7,7 +7,7 @@ const FILE = "heure-bleue.json";
 const fm = FileManager.local();
 const path = fm.joinPath(fm.documentsDirectory(), FILE);
 let C = { bg1: "#06163a", bg2: "#123a8c", cyan: "#2ee6ff", pink: "#ff3d7f", ink: "#f3f7ff", mute: "#9db3e6" };
-const VERT = { bg1: "#f7f7f7", bg2: "#99ffcc", cyan: "#009e24", pink: "#0b5a24", ink: "#0b5a24", mute: "#3f7a52" };
+const VERT = { bg1: "#c2d9c9", bg2: "#8fe6b9", cyan: "#0a7a2a", pink: "#0b5a24", ink: "#0b4a1f", mute: "#2c5a3a", rk: "#0b4a1f" };
 const RKC = { E: "#5b6b8f", D: "#3ddc5a", C: "#2ee6ff", B: "#4d8bff", A: "#ff3d7f", S: "#ffd23d" };
 const col = (h, a) => { try { return new Color(h, a === undefined ? 1 : a) } catch (e) { return new Color(C.mute) } };
 
@@ -31,11 +31,11 @@ function txt(stack, s, size, color, weight) {
 }
 function rankBox(stack, r, size) {
   const b = stack.addStack(); b.size = new Size(size, size); b.backgroundColor = col(RKC[r] || C.mute); b.cornerRadius = 4; b.centerAlignContent();
-  const t = b.addText(r || "?"); t.font = Font.blackSystemFont(size * 0.66); t.textColor = col("#06163a");
+  const t = b.addText(r || "?"); t.font = Font.blackSystemFont(size * 0.66); t.textColor = col(C.rk || "#06163a");
 }
 
 function build(d, family) {
-  if (d && d.skin === "vert") C = VERT;
+  if (d && d.pal && d.pal.bg1) C = Object.assign({}, C, d.pal); else if (d && d.skin === "vert") C = VERT;
   const w = new ListWidget();
   const g = new LinearGradient(); g.colors = [col(C.bg2), col(C.bg1)]; g.locations = [0, 1]; g.startPoint = new Point(1, 0); g.endPoint = new Point(0, 1);
   w.backgroundGradient = g; w.setPadding(14, 14, 14, 14); w.url = "https://timothemahoukou.github.io/Heure-Bleue/";
