@@ -234,6 +234,14 @@ input,textarea{-webkit-user-select:text;user-select:text}
 .turn{display:none}
 @media (orientation:landscape) and (max-height:520px){.turn{display:grid;position:fixed;inset:0;z-index:100;place-items:center;align-content:center;gap:14px;background:var(--bg);text-align:center;padding:20px}.turn b{font:400 34px Anton,Impact,sans-serif}.turn i{width:46px;height:80px;border:4px solid var(--cyan);border-radius:8px;animation:rot 1.6s ease-in-out infinite}}
 @keyframes rot{0%,30%{transform:rotate(-90deg)}70%,100%{transform:rotate(0)}}
+/* feuilles : défilement vertical seulement */
+.scrim{touch-action:none;overscroll-behavior:contain}
+.sheet{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.sheet *{max-width:100%}
+.sheet .in{display:block;min-width:0;-webkit-appearance:none;appearance:none}
+.sheet input[type=date],.sheet input[type=time]{width:100%;min-width:0}
+.sheet .chips,.sheet .acts,.sheet .row,.sheet .sw8{padding-inline:6px}
+body.lock{overflow:hidden;position:fixed;inset:0;width:100%}
 /* tab bar */
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;padding:10px 8px calc(var(--sb) + 10px);background:linear-gradient(180deg,transparent,rgba(2,9,30,.96) 30%)}
 .tab{min-height:54px;background:var(--bg2);transform:skewX(-14deg);border-bottom:3px solid transparent;transition:background .15s,transform .15s}
@@ -666,8 +674,8 @@ function render(anim){
 function go(v){if(v===view)return;view=v;const w=$('wipe');w.classList.remove('go');void w.offsetWidth;w.classList.add('go');window.scrollTo(0,0);render(true)}
 
 /* sheets */
-function openSheet(html){$('sheet').innerHTML=html;$('scrim').classList.add('open')}
-function closeSheet(){$('scrim').classList.remove('open')}
+let lockY=0;function openSheet(html){$('sheet').innerHTML=html;$('sheet').scrollTop=0;if(!$('scrim').classList.contains('open')){lockY=window.scrollY;document.body.style.top=-lockY+'px';document.body.classList.add('lock')}$('scrim').classList.add('open')}
+function closeSheet(){if(!$('scrim').classList.contains('open'))return;$('scrim').classList.remove('open');document.body.classList.remove('lock');document.body.style.top='';window.scrollTo(0,lockY)}
 function entrySheet(e,day){
   const isNew=!e;const now=new Date();
   e=e||{cat:(S.timer&&S.timer.cat)||S.cats[0]?.id,start:+(day?new Date(fromKey(day).setHours(17,0,0,0)):new Date(now.getTime()-3600e3)),dur:3600,note:''};
