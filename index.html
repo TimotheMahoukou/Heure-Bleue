@@ -343,7 +343,6 @@ label.f{display:block;margin:12px 0 4px;color:var(--cyan);font-weight:800;text-t
   <button class="phase" id="homeBtn" aria-label="Revenir au menu d’accueil"><span class="d" id="hPhase"></span><small id="hTime"></small><em>◆ MENU</em></button>
 </header>
 <main id="view" class="view"></main>
-<button class="fab" id="fab" aria-label="Ajouter une séance"><span>+</span></button>
 <nav class="tabs" aria-label="Sections">
   <button class="tab" data-v="today"><span>Jour</span><small>chrono</small></button>
   <button class="tab" data-v="cal"><span>Agenda</span><small>calendrier</small></button>
@@ -427,7 +426,8 @@ function vToday(){
   const list=S.cats.map((c,i)=>{const on=t&&t.cat===c.id;return `<li style="--i:${i+1}"><button class="mi${on?' act':''}" style="--c:${esc(c.color)}" data-start="${esc(c.id)}"><span class="sw"></span><span class="nm">${esc(c.name)}</span><span class="tm" data-tm="${esc(c.id)}">${esc(fmt(secsOn(k,c.id)))}</span><span class="go">${on?'■':'▶'}</span></button></li>`}).join('');
   const ents=entriesOn(k);
   return timer+`<h2 class="d" style="--i:1">Activités</h2><ul class="menu" style="--i:2">${list}</ul>
-  <h2 class="d" style="--i:3">Journal du jour</h2><div style="--i:4">${ents.length?ents.map(entRow).join(''):'<div class="empty">Aucune séance terminée aujourd’hui. Lance le chrono, ou touche + pour en ajouter une à la main.</div>'}</div>`;
+  <h2 class="d" style="--i:3">Journal du jour</h2><div style="--i:4">${ents.length?ents.map(entRow).join(''):'<div class="empty">Aucune séance terminée aujourd’hui. Lance le chrono, ou ajoute-en une à la main.</div>'}
+  <div class="row" style="margin-top:12px"><button class="btn alt" data-addnow><span>+ Ajouter une séance</span></button></div></div>`;
 }
 function entRow(e){const c=cat(e.cat);return `<button class="ent" style="--c:${esc(c.color)}" data-edit="${esc(e.id)}"><i></i><span><span class="t">${hm(e.start)} – ${hm(e.start+e.dur*1000)}</span><br><span class="c">${esc(c.name)}</span>${e.note?' <span class="no">· '+esc(e.note)+'</span>':''}</span><span class="du">${esc(fmt(e.dur))}</span></button>`}
 
@@ -771,7 +771,6 @@ const VIEWS={home:vHome,today:vToday,cal:vCal,stats:vStats,gym:vGym,cats:vCats};
 function render(anim){
   header();const v=$('view');v.innerHTML=VIEWS[view]();
   if(!anim){for(const el of v.children)el.style.animation='none'}
-  $('fab').style.display=view==='home'?'none':'';
   document.querySelectorAll('.tab').forEach(t=>t.dataset.v===view?t.setAttribute('aria-current','page'):t.removeAttribute('aria-current'));
 }
 function go(v){if(v===view)return;view=v;const w=$('wipe');w.classList.remove('go');void w.offsetWidth;w.classList.add('go');window.scrollTo(0,0);render(true)}
@@ -825,6 +824,7 @@ document.addEventListener('click',ev=>{
   else if('stop' in ds)stopTimer();
   else if(ds.edit)entrySheet(S.entries.find(e=>e.id===ds.edit));
   else if(ds.add)entrySheet(null,ds.add);
+  else if('addnow' in ds)entrySheet(null,null);
   else if(ds.day){selDay=ds.day;render()}
   else if(ds.cm){calM.setMonth(calM.getMonth()+ +ds.cm);render(true)}
   else if(ds.wk){wkOff=Math.min(0,wkOff+ +ds.wk);render(true)}
@@ -869,7 +869,6 @@ document.addEventListener('change',ev=>{const t=ev.target;
   if(t.dataset&&t.dataset.cov&&t.files[0])setCover(t.dataset.cov,t.files[0]);
   if(t.id==='musIn'&&t.files.length)addTracks([...t.files])});
 audio.onplay=audio.onpause=musicUI;
-$('fab').onclick=()=>view==='gym'?liftSheet(null,null):entrySheet(null,view==='cal'?selDay:null);
 $('scrim').addEventListener('click',ev=>{if(ev.target.id==='scrim')closeSheet()});
 setInterval(()=>{if(S.timer){const c=$('clk');if(c)c.textContent=clock(live());const k=dayKey(new Date());document.querySelectorAll('[data-tm]').forEach(el=>el.textContent=fmt(secsOn(k,el.dataset.tm)))}header();checkReminders()},1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render()});
