@@ -134,6 +134,16 @@ textarea{width:100%;min-height:120px;background:#020b22;border:1px solid var(--l
 .ex .gp{color:var(--c);font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
 .gchips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
 .gchips .chip{flex:none}
+.ptab{position:fixed;right:0;top:46%;z-index:4;display:none;width:26px;padding:14px 0;background:var(--cyan);color:var(--bg);box-shadow:-4px 4px 0 var(--pink);font:400 15px Anton,Impact,sans-serif;letter-spacing:.12em}
+.ptab span{display:block;writing-mode:vertical-rl;transform:rotate(180deg);margin:0 auto}
+body.gymv .ptab{display:block}body.gymv main{padding-right:36px}
+.prog{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;margin-bottom:10px;padding:14px;background:rgba(255,255,255,.07);border-left:6px solid var(--c);text-align:left;color:var(--ink)}
+.prog .nm{font:400 24px Anton,Impact,sans-serif;text-transform:uppercase;color:var(--c)}.prog .l{color:var(--mute);font-weight:600;font-size:14px}.prog .l b{color:var(--ink)}
+.psteps{list-style:none;margin:14px 0 0;padding:0}
+.pstep{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+.pstep .no{display:grid;place-items:center;width:30px;height:30px;background:var(--c);color:#06163a;font:400 18px Anton,Impact,sans-serif;transform:skewX(-12deg)}
+.pstep .nm{font-weight:800;text-transform:uppercase}.pstep .l{color:var(--mute);font-size:13px;font-weight:600}.pstep .l b{color:var(--ink)}.pstep.ok .nm{opacity:.7}
+
 .pick{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;background:rgba(255,255,255,.08);border-left:6px solid var(--c,#fff);text-align:left;color:var(--ink)}.pick .nm{font:400 22px Anton,Impact,sans-serif;text-transform:uppercase}.pick small{color:var(--mute);font-weight:700;font-size:13px;text-transform:uppercase}#lex{margin-top:10px}
 .gl{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;min-height:52px;border-bottom:1px solid var(--line);text-align:left}
 .gl i{width:28px;height:28px;background:var(--c);transform:skewX(-14deg)}
@@ -344,6 +354,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--cyan);font-weight:800;text-t
   <button class="phase" id="homeBtn" aria-label="Revenir au menu d’accueil"><span class="d" id="hPhase"></span><small id="hTime"></small><em>◆ MENU</em></button>
 </header>
 <main id="view" class="view"></main>
+<button class="ptab" data-progs aria-label="Programmes d’entraînement"><span>PROGRAMMES</span></button>
 <nav class="tabs" aria-label="Sections">
   <button class="tab" data-v="today"><span>Jour</span><small>chrono</small></button>
   <button class="tab" data-v="cal"><span>Agenda</span><small>calendrier</small></button>
@@ -610,9 +621,10 @@ function vGym(){
   <h2 class="d" style="--i:5">Groupes musculaires</h2><div style="--i:6">${S.groups.map(g=>`<button class="gl" style="--c:${okCol(g.color)}" data-grp="${esc(g.id)}"><i></i><span style="font-weight:800;text-transform:uppercase">${esc(g.name)}</span><span class="g">${S.exos.filter(x=>x.g===g.id).length} exercice(s)</span></button>`).join('')}
   <div class="row" style="margin-top:14px"><button class="btn ghost" data-grp="new"><span>Nouveau groupe</span></button></div></div>`;
 }
-function liftSheet(l,exoId){
+function liftSheet(l,exoId,pre){
   const isNew=!l;
-  if(!l){const prev=exoId&&liftsOf(exoId).pop();l={exo:exoId||S.exos[0]?.id,date:Date.now(),sets:prev?prev.sets.map(s=>({...s})):[{r:10,w:0},{r:10,w:0},{r:10,w:0}],note:''}}
+  if(!l){const prev=exoId&&liftsOf(exoId).pop();l={exo:exoId||S.exos[0]?.id,date:Date.now(),sets:prev?prev.sets.map(s=>({...s})):[{r:10,w:0},{r:10,w:0},{r:10,w:0}],note:''};
+    if(pre){const w=prev?best(prev).w:0;l.sets=Array.from({length:pre.n},()=>({r:pre.r,w}))}}
   let sets=l.sets.map(s=>({...s})),sel=l.exo;let mode=l.mode||(l.sets.some(z=>z.w>0)?'lest':'bw');
   const isBw=()=>!!exo(sel).bw;
   const head=()=>`<span>Série</span><span>${STD[sel]&&STD[sel][0]==='sec'?'Secondes':'Reps'}</span><span>${isBw()?(mode==='lest'?'Lest (kg)':''):PERDB.has(sel)?'Kg par haltère':'Charge (kg)'}</span><span></span>`;
@@ -646,11 +658,37 @@ function liftSheet(l,exoId){
     const nb=best({sets:ok});const isPR=old&&(nb.w>old.w||(nb.w===old.w&&nb.r>old.r));
     const before=rankMap();const o={id:l.id||uid(),exo:sel,date:+d,sets:ok,note:$('lnote').value.trim(),mode:isBw()?mode:undefined};
     if(isNew)S.lifts.push(o);else Object.assign(S.lifts.find(x=>x.id===l.id),o);
-    save();closeSheet();render();
+    save();closeSheet();render();if(pre&&pre.back)setTimeout(()=>progSheet(pre.back),400);
     const after=rankMap(),gid=exo(sel).g;
     if(after._>before._)boom('Rang global '+RK[after._]+' !');else if(gid&&after[gid]>before[gid])boom(grp(gid).name+' : rang '+RK[after[gid]]+' !');else if(isPR)boom('Nouveau record !');else toast(isNew?'Perf notée':'Perf modifiée')};
   if(!isNew)$('ldel').onclick=()=>confirmSheet('Supprimer cette perf ?',()=>{S.lifts=S.lifts.filter(x=>x.id!==l.id);save();toast('Perf supprimée');render()});
 }
+
+/* programmes d'entraînement : [exercice, séries, reps (ou secondes), repos en s, conseil] */
+const PROGS=[
+ {id:'haut',n:'Haut du corps',c:'#ff3b3b',d:'≈ 60 min',i:'Pecs, dos, épaules et bras. Alterne poussée et tirage. 2 fois par semaine, avec le programme bas du corps entre les deux.',
+  e:[['x0',4,8,120,'Charge lourde, garde 1 à 2 reps en réserve'],['x27',4,8,120,'Dos plat, tire vers le nombril'],['x3',3,10,90,'Gaine les abdos, ne cambre pas'],['x29',3,10,90,'Tire vers le haut de la poitrine'],['x12',3,10,90,'Banc à 30°'],['x38',3,15,60,'Léger et contrôlé'],['x6',3,12,60,''],['x49',3,12,60,'Coudes collés au corps']]},
+ {id:'bas',n:'Bas du corps',c:'#ffcc33',d:'≈ 55 min',i:'Cuisses, fessiers, mollets et un peu d’abdos. Échauffe-toi bien sur le premier exercice.',
+  e:[['x1',4,6,150,'Descends au moins à la parallèle'],['x8',3,10,120,''],['x22',3,10,90,'10 par jambe'],['x26',3,12,60,''],['x25',3,12,60,'Marque une pause en haut'],['x10',4,15,45,'Amplitude complète'],['x56',3,12,60,'Sans balancer']]},
+ {id:'full',n:'Full body',c:'#2ee6ff',d:'≈ 50 min',i:'Tout le corps en une séance. Idéal à 3 séances par semaine, avec un jour de repos entre chaque.',
+  e:[['x1',3,8,120,''],['x0',3,8,120,''],['x27',3,8,90,''],['x3',3,10,90,''],['x26',3,12,60,''],['x9',3,45,45,'45 secondes']]},
+ {id:'poly',n:'Polyarticulaire',c:'#b18cff',d:'≈ 65 min',i:'Les gros mouvements qui font travailler plusieurs muscles à la fois. Séries de 5, lourdes, avec de longs repos : parfait pour la force.',
+  e:[['x1',5,5,180,''],['x0',5,5,180,''],['x2',3,5,180,'Dos neutre, barre collée aux jambes'],['x3',5,5,150,''],['x4',4,8,120,'Lesté si c’est trop facile'],['x7',3,10,90,'']]},
+ {id:'pdc',n:'Poids du corps',c:'#3ddc5a',d:'≈ 40 min',i:'Sans matériel, ou presque (une barre pour les tractions). Faisable à la maison ou au parc.',
+  e:[['x5',4,15,60,''],['x4',4,8,90,''],['x64',3,10,90,'Buste penché vers l’avant'],['x22',3,12,60,'12 par jambe, sans haltères'],['x56',3,12,60,''],['x57',3,10,60,''],['x9',3,60,45,'60 secondes'],['x52',3,30,30,'30 s par côté']]}];
+const doneToday=x=>S.lifts.some(l=>l.exo===x&&dayKey(l.date)===dayKey(Date.now()));
+const progSteps=pg=>pg.e.filter(([x])=>S.exos.some(e=>e.id===x));
+const restT=s=>s>=60?(s%60?Math.floor(s/60)+' min '+s%60:s/60+' min'):s+' s';
+function progsSheet(){
+  openSheet(`<h3>Programmes</h3><div style="color:var(--mute);font-weight:500;margin-bottom:12px">Choisis une séance et suis les exercices dans l’ordre. Touche « Noter » après chaque exercice.</div>
+  ${PROGS.map(pg=>{const st=progSteps(pg),dn=st.filter(([x])=>doneToday(x)).length;return `<button class="prog" style="--c:${pg.c}" data-prog="${pg.id}"><span class="nm">${esc(pg.n)}</span><span class="l">${st.length} exercices · ${pg.d}${dn?` · <b>${dn}/${st.length} fait${dn>1?'s':''} aujourd’hui</b>`:''}</span></button>`}).join('')}
+  <div class="acts"><button class="btn ghost" data-close><span>Fermer</span></button></div>`)}
+function progSheet(id){
+  const pg=PROGS.find(p=>p.id===id);if(!pg)return;const st=progSteps(pg),dn=st.filter(([x])=>doneToday(x)).length;
+  openSheet(`<h3 style="color:${pg.c}">${esc(pg.n)}</h3><div style="color:var(--mute);font-weight:500">${esc(pg.i)}</div>
+  <div class="mini" style="margin:12px 0 4px;--c:${pg.c}"><div style="width:${st.length?dn/st.length*100:0}%;background:${pg.c}"></div></div><div class="l" style="color:var(--mute);font-weight:700;font-size:13px">${dn}/${st.length} faits aujourd’hui</div>
+  <ol class="psteps">${st.map(([x,n,r,rest,tip],i)=>{const e=exo(x),ok=doneToday(x),sec=STD[x]&&STD[x][0]==='sec';return `<li class="pstep${ok?' ok':''}" style="--c:${xcol(e)}"><span class="no">${ok?'✓':i+1}</span><div><div class="nm">${esc(e.name)}</div><div class="l"><b>${n} × ${r}${sec?' s':''}</b> · repos ${restT(rest)}${tip?' · '+esc(tip):''}</div></div><button class="chip" style="--c:${xcol(e)}" data-pstep="${pg.id}:${i}">${ok?'Encore':'Noter'}</button></li>`}).join('')}</ol>
+  <div class="acts"><button class="btn ghost" data-progs><span>Tous les programmes</span></button><button class="btn ghost" data-close><span>Fermer</span></button></div>`)}
 function exoSheet(id){
   const x=exo(id),ls=liftsOf(id),r=record(id);
   openSheet(`<h3>${esc(x.name)}</h3>
@@ -785,6 +823,7 @@ const VIEWS={home:vHome,today:vToday,cal:vCal,stats:vStats,gym:vGym,cats:vCats};
 function render(anim){
   header();const v=$('view');v.innerHTML=VIEWS[view]();
   if(!anim){for(const el of v.children)el.style.animation='none'}
+  document.body.classList.toggle('gymv',view==='gym');
   document.querySelectorAll('.tab').forEach(t=>t.dataset.v===view?t.setAttribute('aria-current','page'):t.removeAttribute('aria-current'));
 }
 function go(v){if(v===view)return;view=v;const w=$('wipe');w.classList.remove('go');void w.offsetWidth;w.classList.add('go');window.scrollTo(0,0);render(true)}
@@ -843,6 +882,9 @@ document.addEventListener('click',ev=>{
   else if(ds.cm){calM.setMonth(calM.getMonth()+ +ds.cm);render(true)}
   else if(ds.wk){wkOff=Math.min(0,wkOff+ +ds.wk);render(true)}
   else if(ds.cat)catSheet(ds.cat==='new'?null:S.cats.find(c=>c.id===ds.cat));
+  else if('progs' in ds)progsSheet();
+  else if(ds.prog)progSheet(ds.prog);
+  else if(ds.pstep){const [pid,i]=ds.pstep.split(':');const pg=PROGS.find(p=>p.id===pid);const st=pg&&progSteps(pg)[+i];if(st)liftSheet(null,st[0],{n:st[1],r:st[2],back:pid})}
   else if(ds.lift)liftSheet(null,ds.lift==='new'?null:ds.lift);
   else if(ds.liftid)liftSheet(S.lifts.find(l=>l.id===ds.liftid));
   else if(ds.exo)exoSheet(ds.exo);
