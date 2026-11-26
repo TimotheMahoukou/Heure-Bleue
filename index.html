@@ -401,6 +401,7 @@ function fill(){if(!Array.isArray(S.playlists))S.playlists=[];if(!S.covers||type
   if(!(S.v>=8)){if(!S.exos.some(x=>x.id==='x39')){const g=S.groups.find(g=>g.id==='epaules')||S.groups.find(g=>/paule/i.test(g.name));S.exos.push({id:'x39',name:'Élévations latérales poulie',g:g?g.id:''})}S.v=8}
   if(!(S.v>=9)){if(!S.exos.some(x=>x.id==='x64')){const g=S.groups.find(g=>g.id==='torse')||S.groups.find(g=>/torse|pec/i.test(g.name));S.exos.push({id:'x64',name:'Dips inclinés (pectoraux)',g:g?g.id:'',bw:true})}S.v=9}
   if(!(S.v>=10)){if(!S.exos.some(x=>x.id==='x44')){const g=S.groups.find(g=>g.id==='bras')||S.groups.find(g=>/bras|biceps/i.test(g.name));S.exos.push({id:'x44',name:'Curl haltères',g:g?g.id:''})}S.v=10}
+  if(!(S.v>=11)){const t=S.exos.find(x=>x.id==='x49');if(t&&t.name==='Extension triceps poulie')t.name='Triceps pushdown (poulie haute)';else if(!t){const g=S.groups.find(g=>g.id==='bras')||S.groups.find(g=>/bras|triceps/i.test(g.name));S.exos.push({id:'x49',name:'Triceps pushdown (poulie haute)',g:g?g.id:''})}S.v=11}
   if(!S.exos.some(x=>'g' in x)){for(const x of S.exos){const d=EXOS.find(e=>e.id===x.id);x.g=d?d.g:''}for(const d of EXOS)if(!S.exos.some(x=>x.id===d.id))S.exos.push({...d})}}
 fill();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
