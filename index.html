@@ -337,6 +337,7 @@ label.f{display:block;margin:12px 0 4px;color:var(--cyan);font-weight:800;text-t
 /* motion */
 .view>*{animation:slide .42s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(var(--i,0)*45ms)}
 @keyframes slide{from{opacity:0;transform:translateX(-40px) skewX(8deg)}}
+body.gymv .view>*{animation:none}
 .wipe{position:fixed;inset:-20% -60%;z-index:8;pointer-events:none;background:linear-gradient(90deg,transparent 30%,var(--cyan) 30% 36%,#fff 36% 40%,var(--blue) 40% 60%,transparent 60%);transform:translateX(-110%) skewX(-25deg);visibility:hidden}
 .wipe.go{visibility:visible;animation:wipe .5s cubic-bezier(.6,0,.3,1)}
 @keyframes wipe{to{transform:translateX(110%) skewX(-25deg)}}
