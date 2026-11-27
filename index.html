@@ -214,6 +214,7 @@ input[type=color]{width:64px;height:46px;padding:2px;background:#020b22;border:1
 .up .when{font:400 20px Anton,Impact,sans-serif;color:#fff;white-space:nowrap}
 .up .when small{display:block;font:800 12px "Barlow Condensed";color:var(--cyan);text-transform:uppercase}
 .up .ti{font-weight:800;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec1 .rt{text-align:left;min-width:0;color:inherit}.rec1.due{background:linear-gradient(90deg,rgba(255,210,61,.18),transparent);padding-left:8px}.rec1.due .when{color:#ffd23d}
 .up .ca{font-size:14px;color:var(--c,var(--mute));font-weight:700}
 .up i{width:12px;height:12px;background:var(--c,#fff);transform:rotate(45deg)}
 .dc.pl::after{content:"";position:absolute;right:5px;top:6px;width:7px;height:7px;background:#fff;transform:rotate(45deg)}
@@ -389,7 +390,7 @@ const VOLT=[30,120,300,600,1000];
 const okCol=c=>/^#[0-9a-f]{6}$/i.test(c)?c:'#9db3e6';
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY))||structuredClone(DEF)}catch(e){S=structuredClone(DEF)}
-function fill(){if(!Array.isArray(S.playlists))S.playlists=[];if(!S.covers||typeof S.covers!=='object')S.covers={};if(!Array.isArray(S.plans))S.plans=[];if(!Array.isArray(S.tracks))S.tracks=[];if(!Array.isArray(S.groups))S.groups=structuredClone(GROUPS);if(!Array.isArray(S.exos))S.exos=structuredClone(EXOS);if(!Array.isArray(S.lifts))S.lifts=[];
+function fill(){if(!Array.isArray(S.recur))S.recur=[];if(!Array.isArray(S.playlists))S.playlists=[];if(!S.covers||typeof S.covers!=='object')S.covers={};if(!Array.isArray(S.plans))S.plans=[];if(!Array.isArray(S.tracks))S.tracks=[];if(!Array.isArray(S.groups))S.groups=structuredClone(GROUPS);if(!Array.isArray(S.exos))S.exos=structuredClone(EXOS);if(!Array.isArray(S.lifts))S.lifts=[];
   if(!(S.v>=2)){let mg=S.groups.find(g=>g.id==='mollets'||/mollet/i.test(g.name));if(!mg){mg={id:'mollets',name:'Mollets',color:'#ff5fd2'};S.groups.push(mg)}if(!S.exos.some(x=>x.id==='x10'))S.exos.push({id:'x10',name:'Mollets debout',g:mg.id});S.v=2}
   if(!(S.v>=3)){for(const x of S.exos)if(['x4','x5','x7','x9'].includes(x.id)&&x.bw===undefined)x.bw=true;S.v=3}
   if(!(S.v>=4)){const gid=(k,re)=>(S.groups.find(g=>g.id===k)||S.groups.find(g=>re.test(g.name))||{id:''}).id;
@@ -404,6 +405,7 @@ function fill(){if(!Array.isArray(S.playlists))S.playlists=[];if(!S.covers||type
   if(!(S.v>=11)){const t=S.exos.find(x=>x.id==='x49');if(t&&t.name==='Extension triceps poulie')t.name='Triceps pushdown (poulie haute)';else if(!t){const g=S.groups.find(g=>g.id==='bras')||S.groups.find(g=>/bras|triceps/i.test(g.name));S.exos.push({id:'x49',name:'Triceps pushdown (poulie haute)',g:g?g.id:''})}S.v=11}
   if(!(S.v>=12)){if(!S.exos.some(x=>x.id==='x65')){const g=S.groups.find(g=>g.id==='bras')||S.groups.find(g=>/bras|triceps/i.test(g.name));S.exos.push({id:'x65',name:'Tirage triceps au-dessus de la tête (poulie)',g:g?g.id:''})}S.v=12}
   if(!(S.v>=13)){const o=S.exos.find(x=>x.id==='x65');if(o&&o.name==='Extension triceps poulie (au-dessus de la tête)')o.name='Tirage triceps au-dessus de la tête (poulie)';if(!S.exos.some(x=>x.id==='x66')){const g=S.groups.find(g=>g.id==='bras')||S.groups.find(g=>/bras|triceps/i.test(g.name));S.exos.push({id:'x66',name:'Extension triceps poulie (corde)',g:g?g.id:''})}S.v=13}
+  if(!(S.v>=14)){if(!S.recur.some(r=>r.id==='r27'))S.recur.push({id:'r27',title:'Répartir mon argent sur mes comptes',day:27,time:'09:00',done:''});S.v=14}
   if(!S.exos.some(x=>'g' in x)){for(const x of S.exos){const d=EXOS.find(e=>e.id===x.id);x.g=d?d.g:''}for(const d of EXOS)if(!S.exos.some(x=>x.id===d.id))S.exos.push({...d})}}
 fill();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
@@ -463,13 +465,13 @@ function vCal(){
     const d=new Date(first);d.setDate(first.getDate()+i);const k=dayKey(d);
     if(i>=35&&d.getMonth()!==m)break;
     const tot=secsOn(k);const parts=S.cats.map(c=>[c,secsOn(k,c.id)]).filter(p=>p[1]>0);
-    cells+=`<button class="dc${plansOn(k).length?' pl':''}${d.getMonth()!==m?' out':''}${k===today?' today':''}${k===selDay?' sel':''}${d.getDay()%6===0?' we':''}" data-day="${k}" aria-label="${d.getDate()} ${MONL[d.getMonth()]}"><span class="dn">${d.getDate()}</span><span>${tot?`<span class="h">${fmtH(tot)} h</span><span class="bar">${parts.map(p=>`<span style="--c:${esc(p[0].color)};flex:${p[1]}"></span>`).join('')}</span>`:''}</span></button>`;
+    cells+=`<button class="dc${plansOn(k).length||recOn(k).length?' pl':''}${d.getMonth()!==m?' out':''}${k===today?' today':''}${k===selDay?' sel':''}${d.getDay()%6===0?' we':''}" data-day="${k}" aria-label="${d.getDate()} ${MONL[d.getMonth()]}"><span class="dn">${d.getDate()}</span><span>${tot?`<span class="h">${fmtH(tot)} h</span><span class="bar">${parts.map(p=>`<span style="--c:${esc(p[0].color)};flex:${p[1]}"></span>`).join('')}</span>`:''}</span></button>`;
   }
   const sd=fromKey(selDay),ents=entriesOn(selDay);
   return `<div class="calh" style="--i:0"><button class="nav" data-cm="-1" aria-label="Mois précédent">‹</button><span class="d">${MONL[m]} ${y}</span><button class="nav" data-cm="1" aria-label="Mois suivant">›</button></div>
   <div class="grid" style="--i:1">${WDS.map(w=>`<div class="wdh">${w}</div>`).join('')}${cells}</div>
   <h2 class="d" style="--i:2">${WD[sd.getDay()]} ${sd.getDate()}</h2>
-  <div style="--i:3"><div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Prévu</div>${plansOn(selDay).map(planRow).join('')||'<div class="empty">Rien de prévu.</div>'}
+  <div style="--i:3"><div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Prévu</div>${recOn(selDay).map(r=>`<button class="up" style="--c:#ffd23d" data-recur="${esc(r.id)}"><span class="when">${esc(r.time||'09:00')}<small>Mensuel</small></span><span><div class="ti">${esc(r.title)}</div><div class="ca">Rappel tous les mois</div></span><i></i></button>`).join('')}${plansOn(selDay).map(planRow).join('')||(recOn(selDay).length?'':'<div class="empty">Rien de prévu.</div>')}
   <div class="row" style="margin:10px 0 18px"><button class="btn" data-plannew="${selDay}"><span>Prévoir ce jour</span></button></div>
   <div class="lab" style="color:var(--cyan);font-weight:800;text-transform:uppercase;font-size:14px">Fait</div>${ents.length?ents.map(entRow).join('')+`<div class="empty">Total : <b style="color:var(--ink)">${esc(fmt(secsOn(selDay)))}</b></div>`:'<div class="empty">Rien ce jour-là.</div>'}
   <div class="row" style="margin-top:12px"><button class="btn alt" data-add="${selDay}"><span>Ajouter ce jour</span></button></div></div>`;
@@ -803,7 +805,34 @@ function icsDownload(p){
     ...(p.rem?['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e(p.title),'TRIGGER:-PT'+p.rem+'M','END:VALARM']:[]),'END:VEVENT','END:VCALENDAR'].filter(Boolean).join('\r\n');
   try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download=(p.title||'evenement').replace(/[^\w\- ]+/g,'')+'.ics';document.body.appendChild(a);a.click();a.remove();toast('Ouvre le fichier pour l’ajouter')}catch(err){toast('Impossible ici : essaie depuis l’app installée')}
 }
-function checkReminders(){const n=Date.now();for(const p of S.plans){const at=p.start-(p.rem||0)*60e3;if(!p.al&&p.rem&&n>=at&&n<p.start+p.dur*60e3){p.al=1;save();boom('À venir : '+p.title)}}}
+
+/* rappels mensuels (ex. le 27 : répartir l'argent) */
+const ymKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+function recNext(r){const n=new Date(),[hh,mm]=(r.time||'09:00').split(':').map(Number);const due=new Date(n.getFullYear(),n.getMonth(),Math.min(r.day,28),hh||0,mm||0);
+  if(n.getDate()>=r.day&&r.done!==ymKey(n))return {at:+due,due:true};if(n.getDate()<r.day)return {at:+due,due:false};const nx=new Date(n.getFullYear(),n.getMonth()+1,Math.min(r.day,28),hh||0,mm||0);return {at:+nx,due:false}}
+const recOn=k=>S.recur.filter(r=>{const d=fromKey(k);return d.getDate()===Math.min(r.day,28)});
+function recRow(r){const x=recNext(r);return `<div class="up rec1${x.due?' due':''}" style="--c:#ffd23d"><span class="when">${x.due?'!':esc(new Date(x.at).getDate()+'')}<small>${x.due?'À faire':esc(MONL[new Date(x.at).getMonth()].slice(0,3))+'.'}</small></span><button class="rt" data-recur="${esc(r.id)}"><div class="ti">${esc(r.title)}</div><div class="ca">Tous les mois, le ${r.day} à ${esc(r.time||'09:00')}</div></button>${x.due?`<button class="chip" style="--c:#ffd23d" data-recdone="${esc(r.id)}">C’est fait</button>`:'<i></i>'}</div>`}
+function recSheet(r){
+  const isNew=!r;r=r||{id:uid(),title:'',day:new Date().getDate()>28?28:new Date().getDate(),time:'09:00',done:''};
+  openSheet(`<h3>${isNew?'Nouveau rappel mensuel':'Rappel mensuel'}</h3><form id="rf">
+  <label class="f" for="rt">Rappel</label><input class="in" id="rt" maxlength="60" required placeholder="ex. Répartir mon argent" value="${esc(r.title)}">
+  <div class="two"><div><label class="f" for="rd">Jour du mois</label><input class="in" type="number" inputmode="numeric" min="1" max="28" id="rd" value="${r.day}" required></div><div><label class="f" for="rh">Heure</label><input class="in" type="time" id="rh" value="${esc(r.time||'09:00')}" required></div></div>
+  <div class="acts"><button class="btn" type="submit"><span>Enregistrer</span></button>${isNew?'':'<button class="btn danger" type="button" id="rdel"><span>Supprimer</span></button>'}<button class="btn ghost" type="button" data-close><span>Annuler</span></button></div>
+  <div class="row" style="margin-top:16px"><button class="btn alt" type="button" id="rics"><span>Mettre dans le calendrier iPhone</span></button></div>
+  <div class="note">Le calendrier de l’iPhone te notifiera chaque mois, même app fermée. Dans l’app, le rappel reste affiché sur l’accueil jusqu’à ce que tu touches « C’est fait ».</div></form>`);
+  const read=()=>({id:r.id,title:$('rt').value.trim()||'Rappel',day:Math.min(28,Math.max(1,Math.round(num($('rd').value)||1))),time:$('rh').value||'09:00',done:r.done||''});
+  $('rf').onsubmit=ev=>{ev.preventDefault();const o=read();if(isNew)S.recur.push(o);else Object.assign(S.recur.find(x=>x.id===r.id),o,{al:''});save();closeSheet();toast('Rappel enregistré');render()};
+  $('rics').onclick=()=>recIcs(read());
+  if(!isNew)$('rdel').onclick=()=>confirmSheet('Supprimer le rappel « '+r.title+' » ?',()=>{S.recur=S.recur.filter(x=>x.id!==r.id);save();render()});
+}
+function recIcs(r){
+  const n=new Date(),[hh,mm]=r.time.split(':').map(Number);let d=new Date(n.getFullYear(),n.getMonth(),r.day,hh||0,mm||0);if(+d<+n)d=new Date(n.getFullYear(),n.getMonth()+1,r.day,hh||0,mm||0);
+  const p2=v=>String(v).padStart(2,'0'),loc=t=>t.getFullYear()+p2(t.getMonth()+1)+p2(t.getDate())+'T'+p2(t.getHours())+p2(t.getMinutes())+'00',e=x=>String(x).replace(/[\;,]/g,m=>'\\'+m);
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Heure Bleue//FR','BEGIN:VEVENT','UID:'+r.id+'@heure-bleue','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),'DTSTART:'+loc(d),'DTEND:'+loc(new Date(+d+15*60e3)),'RRULE:FREQ=MONTHLY;BYMONTHDAY='+r.day,'SUMMARY:'+e(r.title),
+    'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+e(r.title),'TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download=(r.title||'rappel').replace(/[^\w\- ]+/g,'')+'.ics';document.body.appendChild(a);a.click();a.remove();toast('Ouvre le fichier pour l’ajouter')}catch(err){toast('Impossible ici : essaie depuis l’app installée')}
+}
+function checkReminders(){const tk=dayKey(new Date());for(const r of S.recur){const x=recNext(r);if(x.due&&Date.now()>=x.at&&r.al!==tk){r.al=tk;save();boom('Rappel : '+r.title)}}const n=Date.now();for(const p of S.plans){const at=p.start-(p.rem||0)*60e3;if(!p.al&&p.rem&&n>=at&&n<p.start+p.dur*60e3){p.al=1;save();boom('À venir : '+p.title)}}}
 function vHome(){
   const up=S.plans.filter(p=>p.start+p.dur*60e3>=Date.now()).sort((a,b)=>a.start-b.start).slice(0,5);
   const L=tracks(),Q=queue(plSel),cur=curTrack(),pl=S.playlists.find(x=>x.id===plSel),LIM=6,shown=showAll||Q.length<=LIM+1?Q:Q.slice(0,LIM);
@@ -812,8 +841,8 @@ function vHome(){
   return `<section class="hero" style="--i:0"><div class="moon"></div><div class="fig">${fig}</div>
   <ul class="hmenu">${items.map(([v,t,sub],i)=>`<li style="--i:${i}"><button data-v="${v}">${t}<small>${sub}</small></button></li>`).join('')}</ul></section>
   <div class="row" style="justify-content:flex-start;margin:-4px 0 8px;--i:1"><label class="btn ghost filebtn" style="min-height:40px;font-size:15px;padding:0 14px"><span>${heroURL?'Changer le visuel':'Choisir un visuel'}</span><input type="file" accept="image/*" id="heroIn"></label></div>
-  <h2 class="d" style="--i:2">À venir</h2><div style="--i:3">${up.length?up.map(planRow).join(''):'<div class="empty">Rien de prévu. Ajoute un contrôle, un entraînement ou une activité.</div>'}
-  <div class="row" style="margin-top:12px"><button class="btn alt" data-plannew><span>Prévoir quelque chose</span></button><button class="btn ghost" data-wup style="min-height:40px;font-size:15px;padding:0 14px"><span>Mettre à jour le widget</span></button></div></div>
+  <h2 class="d" style="--i:2">À venir</h2><div style="--i:3">${S.recur.slice().sort((a,b)=>recNext(b).due-recNext(a).due||recNext(a).at-recNext(b).at).map(recRow).join('')}${up.length?up.map(planRow).join(''):'<div class="empty">Rien de prévu. Ajoute un contrôle, un entraînement ou une activité.</div>'}
+  <div class="row" style="margin-top:12px"><button class="btn alt" data-plannew><span>Prévoir quelque chose</span></button><button class="btn ghost" data-recnew style="min-height:40px;font-size:15px;padding:0 14px"><span>+ Rappel mensuel</span></button><button class="btn ghost" data-wup style="min-height:40px;font-size:15px;padding:0 14px"><span>Mettre à jour le widget</span></button></div></div>
   <h2 class="d" style="--i:4">Musique</h2><section class="panel" style="--i:5">
   <div class="np${audio.paused?'':' playing'}"><div class="vinyl" aria-hidden="true"><div class="cv">${cur&&coverOf(cur)?`<img src="${coverOf(cur)}" alt="">`:'♪'}</div></div><div class="now"><b id="npn">${esc(cur?cur.name:'Aucune musique')}</b><small>${esc(playQ?(S.playlists.find(x=>x.id===playQ)||{name:''}).name:'Toutes les musiques')}</small></div></div>
   <div class="player"><button class="pbtn" data-mprev aria-label="Morceau précédent">◀◀</button><button class="pbtn main" id="pp" data-mplay aria-label="Lecture ou pause">${audio.paused?'▶':'❚❚'}</button><button class="pbtn" data-mnext aria-label="Morceau suivant">▶▶</button></div>
@@ -870,7 +899,7 @@ function catSheet(c){
 }
 function confirmSheet(q,yes){openSheet(`<h3>${esc(q)}</h3><div style="color:var(--mute)">Impossible d’annuler.</div><div class="acts"><button class="btn danger" id="yes"><span>Oui, supprimer</span></button><button class="btn ghost" data-close><span>Non</span></button></div>`);$('yes').onclick=()=>{closeSheet();yes()}}
 function importSheet(){openSheet(`<h3>Importer des données</h3><div style="color:var(--mute);font-weight:500">Colle ici le texte copié avec « Copier mes données ». Il remplace tout ce qui est sur ce téléphone.</div><textarea id="itx" aria-label="Données à importer"></textarea><div class="acts"><button class="btn" id="igo"><span>Importer</span></button><button class="btn ghost" data-close><span>Annuler</span></button></div>`);
-  $('igo').onclick=()=>{try{const o=JSON.parse($('itx').value);if(!Array.isArray(o.cats)||!Array.isArray(o.entries))throw 0;S={cats:o.cats,entries:o.entries,timer:o.timer||null,plans:o.plans||[],tracks:[],playlists:[],groups:o.groups,exos:o.exos,lifts:o.lifts,profile:o.profile||null,v:o.v};fill();save();closeSheet();toast('Données importées');render()}catch(e){toast('Texte non reconnu')}}}
+  $('igo').onclick=()=>{try{const o=JSON.parse($('itx').value);if(!Array.isArray(o.cats)||!Array.isArray(o.entries))throw 0;S={cats:o.cats,entries:o.entries,timer:o.timer||null,plans:o.plans||[],recur:o.recur||[],tracks:[],playlists:[],groups:o.groups,exos:o.exos,lifts:o.lifts,profile:o.profile||null,v:o.v};fill();save();closeSheet();toast('Données importées');render()}catch(e){toast('Texte non reconnu')}}}
 function exportData(){const txt=JSON.stringify(S);
   const fallback=()=>openSheet(`<h3>Tes données</h3><div style="color:var(--mute);font-weight:500">Sélectionne tout et copie ce texte dans tes notes.</div><textarea readonly>${esc(txt)}</textarea><div class="acts"><button class="btn ghost" data-close><span>Fermer</span></button></div>`);
   try{navigator.clipboard.writeText(txt).then(()=>toast('Copié ! Colle-le dans tes notes'),fallback)}catch(e){fallback()}}
@@ -899,6 +928,9 @@ document.addEventListener('click',ev=>{
   else if(ds.skin){S.skin=ds.skin==='vert'?'vert':'bleu';save();applySkin();render();toast('Thème '+(S.skin==='vert'?'Néon vert':'Nuit bleue'))}
   else if('wscript' in ds)copyScript();
   else if('plannew' in ds)planSheet(null,ds.plannew||null);
+  else if(ds.recur)recSheet(S.recur.find(r=>r.id===ds.recur));
+  else if('recnew' in ds)recSheet(null);
+  else if(ds.recdone){const r=S.recur.find(x=>x.id===ds.recdone);if(r){r.done=ymKey(new Date());save();toast('Bien joué, c’est noté pour ce mois');render()}}
   else if(ds.plan)planSheet(S.plans.find(p=>p.id===ds.plan));
   else if('mplay' in ds)togglePlay();
   else if('mnext' in ds)playT(curT+1);
